@@ -10,6 +10,7 @@ public sealed class FloodWaterCurrentAnimator : MonoBehaviour
     MaterialPropertyBlock properties;
     Vector4 baseMapSt;
     Vector4 bumpMapSt;
+    bool hasBaseMap;
     bool hasBumpMap;
 
     void Awake()
@@ -18,8 +19,11 @@ public sealed class FloodWaterCurrentAnimator : MonoBehaviour
         properties = new MaterialPropertyBlock();
 
         var material = waterRenderer.sharedMaterial;
-        baseMapSt = material.GetVector(BaseMapSt);
-        hasBumpMap = material.HasProperty(BumpMapSt);
+        hasBaseMap = material != null && material.HasProperty(BaseMapSt);
+        if (hasBaseMap)
+            baseMapSt = material.GetVector(BaseMapSt);
+
+        hasBumpMap = material != null && material.HasProperty(BumpMapSt);
         if (hasBumpMap)
             bumpMapSt = material.GetVector(BumpMapSt);
     }
@@ -30,9 +34,12 @@ public sealed class FloodWaterCurrentAnimator : MonoBehaviour
         float speedZ = Time.time * 0.01f;
 
         waterRenderer.GetPropertyBlock(properties);
-        baseMapSt.z = speedX;
-        baseMapSt.w = speedZ;
-        properties.SetVector(BaseMapSt, baseMapSt);
+        if (hasBaseMap)
+        {
+            baseMapSt.z = speedX;
+            baseMapSt.w = speedZ;
+            properties.SetVector(BaseMapSt, baseMapSt);
+        }
 
         if (hasBumpMap)
         {
