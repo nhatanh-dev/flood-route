@@ -1,0 +1,80 @@
+# Unity generated folders
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Asset Store tools
+/Assets/AssetStoreTools*
+
+# IDE and editor generated files
+.vs/
+.idea/
+.gradle/
+.vscode/
+
+# Visual Studio / Rider
+ExportedObj/
+.consulo/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity crash and temporary files
+sysinfo.txt
+crashlytics-build.properties
+mono_crash.*
+debug.log
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Builds and packaged apps
+*.apk
+*.aab
+*.app
+*.unitypackage
+
+# Do NOT ignore Unity .meta files
+
+# Local captures
+/Captures/
+
+# Local IDE setup
+/.vsconfig
+
+# Project notes and handoff documents
+/CHATGPT_PLUS_PROJECT_HANDOFF.md
+/GDD_LoTrinh_CuuTro.md
+/Game_Script_Specification.md
+
+# Round design documents and exports
+/FloodRoute_Redesign_Rounds_*.md
+/FloodRoute_Redesign_Rounds_*.pdf
+/FloodRoute_Redesign_Rounds_*.pdff
+
+# Local draft configs
+/RoundConfig_3Rounds_Draft.json
+/RoundConfig_3Rounds_Draft.*.json
+
+# Backup files
+*.backup.*
+*.pre-keyboard-first.backup.*
