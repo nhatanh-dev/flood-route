@@ -82,7 +82,7 @@ public static class FloodRoutePropScaleAndReposition
         UpdatePrefabBadge("Assets/Prefabs/Environment/House_Prefab.prefab", 1.8f);
         UpdatePrefabBadge("Assets/Prefabs/Environment/Tree_Prefab.prefab", 1.4f);
 
-        foreach (var canvas in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Exclude))
+        foreach (var canvas in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
         {
             if (canvas.name != "Node_Status_Canvas")
             {

@@ -37,7 +37,7 @@ public static class FloodRouteProductionHudOverhaul
         ConfigurePrefabBadge("Assets/Prefabs/Environment/House_Prefab.prefab", 2.1f);
         ConfigurePrefabBadge("Assets/Prefabs/Environment/Tree_Prefab.prefab", 1.7f);
 
-        foreach (var canvas in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Exclude))
+        foreach (var canvas in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
         {
             if (canvas.name != "Node_Status_Canvas")
             {

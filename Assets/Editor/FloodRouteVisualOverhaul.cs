@@ -106,7 +106,7 @@ public static class FloodRouteVisualOverhaul
 
     private static void RebuildSceneGameplayBadges()
     {
-        var gameplayNodes = UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsInactive.Exclude)
+        var gameplayNodes = UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
             .Where(go => go != null && go.scene.IsValid())
             .Where(go =>
                 go.name.StartsWith("House_Node", StringComparison.Ordinal) ||

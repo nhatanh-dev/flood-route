@@ -1,0 +1,32 @@
+{
+  "checks": {
+    "large_upright_roof_sign_present": true,
+    "front_facing_text_mesh_present": true,
+    "secondary_top_roof_text_present": true,
+    "vietnam_red_flag_present": true,
+    "vietnam_star_still_present": true,
+    "small_roof_flags_still_removed": true
+  },
+  "passed": true,
+  "text": "Nhà văn hoá cộng đồng tránh lũ",
+  "placement": "large upright front-facing roof/eave sign plus secondary top-facing roof plate",
+  "red_flag_objects": [
+    "front_right_flagpole_round_base",
+    "front_right_flat_red_flag_static",
+    "front_right_tall_metal_flagpole"
+  ],
+  "yellow_star_objects": [
+    "vietnam_flag_yellow_star_low_poly_flat"
+  ],
+  "rendered": [
+    "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\CommuneOffice_Rural_A\\QA_Renders\\Cam_Isometric_Game_Readability_RoofTextLargeReadable.png",
+    "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\CommuneOffice_Rural_A\\QA_Renders\\Cam_Orthographic_Front_RoofTextLargeReadable.png",
+    "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\CommuneOffice_Rural_A\\QA_Renders\\Cam_Orthographic_Top_RoofTextLargeReadable.png"
+  ],
+  "exports": [
+    "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\CommuneOffice_Rural_A\\CommuneOffice_Rural_A.blend",
+    "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\CommuneOffice_Rural_A\\CommuneOffice_Rural_A.fbx",
+    "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\CommuneOffice_Rural_A\\CommuneOffice_Rural_A.glb"
+  ],
+  "object_count": 168
+}

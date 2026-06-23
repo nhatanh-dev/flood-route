@@ -1,0 +1,52 @@
+﻿{
+    "asset_name":  "VietnameseRuralHouse_PreFlood_A",
+    "blend_exists":  true,
+    "fbx_exists":  true,
+    "glb_exists":  true,
+    "object_count":  235,
+    "mesh_count":  229,
+    "removed_3d_sheet_labels_and_grid":  true,
+    "cameras":  [
+                    "Cam_Orthographic_Front_HinhChieuDung",
+                    "Cam_Orthographic_Left_Side_HinhChieuDung",
+                    "Cam_Orthographic_Back_HinhChieuDung",
+                    "Cam_Isometric_3_4_HinhChieuTrucDo"
+                ],
+    "required_named_objects_present":  {
+                                           "main_cap4_body":  true,
+                                           "grey_am_duong_roof":  true,
+                                           "left_red_tile_annex":  true,
+                                           "right_green_corrugated_annex":  true,
+                                           "front_steps":  true,
+                                           "potted_plants":  true,
+                                           "firewood":  true,
+                                           "metal_barrels":  true
+                                       },
+    "qa_clean_renders":  [
+                             "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\VietnameseRuralHouse_PreFlood_A\\QA_Renders\\Cam_Orthographic_Front_HinhChieuDung_Clean.png",
+                             "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\VietnameseRuralHouse_PreFlood_A\\QA_Renders\\Cam_Orthographic_Left_Side_HinhChieuDung_Clean.png",
+                             "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\VietnameseRuralHouse_PreFlood_A\\QA_Renders\\Cam_Orthographic_Back_HinhChieuDung_Clean.png",
+                             "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\VietnameseRuralHouse_PreFlood_A\\QA_Renders\\Cam_Isometric_3_4_HinhChieuTrucDo_Clean.png"
+                         ],
+    "qa_full_compound_renders":  [
+                                     "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\VietnameseRuralHouse_PreFlood_A\\QA_Renders\\Cam_Orthographic_Front_HinhChieuDung_FullCompound.png",
+                                     "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\VietnameseRuralHouse_PreFlood_A\\QA_Renders\\Cam_Orthographic_Left_Side_HinhChieuDung_FullCompound.png",
+                                     "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\VietnameseRuralHouse_PreFlood_A\\QA_Renders\\Cam_Orthographic_Back_HinhChieuDung_FullCompound.png",
+                                     "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\VietnameseRuralHouse_PreFlood_A\\QA_Renders\\Cam_Isometric_3_4_HinhChieuTrucDo_FullCompound.png"
+                                 ],
+    "camera_ortho_scale_adjusted_for_full_compound":  true,
+    "qa_final_sheet_source_renders":  [
+                                          "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\VietnameseRuralHouse_PreFlood_A\\QA_Renders\\Cam_Orthographic_Front_HinhChieuDung_FinalSheetSource.png",
+                                          "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\VietnameseRuralHouse_PreFlood_A\\QA_Renders\\Cam_Orthographic_Left_Side_HinhChieuDung_FinalSheetSource.png",
+                                          "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\VietnameseRuralHouse_PreFlood_A\\QA_Renders\\Cam_Orthographic_Back_HinhChieuDung_FinalSheetSource.png",
+                                          "D:\\Documents\\FPT_docu\\PRU\\LEWM-game\\game-Lewm\\Assets\\_FloodRoute\\Art\\Source\\Building\\VietnameseRuralHouse_PreFlood_A\\QA_Renders\\Cam_Isometric_3_4_HinhChieuTrucDo_FinalSheetSource.png"
+                                      ],
+    "final_camera_scales":  {
+                                "front_back":  11.65,
+                                "side":  8.9,
+                                "iso":  13.2
+                            },
+    "concept_sheet_png":  "VietnameseRuralHouse_PreFlood_A_ConceptSheet.png",
+    "unity_primary_import_file":  "VietnameseRuralHouse_PreFlood_A.fbx",
+    "missing_external_files":  0
+}

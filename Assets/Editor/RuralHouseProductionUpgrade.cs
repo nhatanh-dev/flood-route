@@ -213,7 +213,7 @@ public static class RuralHouseProductionUpgrade
         Vector3 targetPosition = targetRing != null ? targetRing.transform.position : houseBounds.center;
 
         foreach (var renderer in UnityEngine.Object.FindObjectsByType<Renderer>(
-                     FindObjectsInactive.Exclude))
+                     FindObjectsInactive.Exclude, FindObjectsSortMode.None))
         {
             if (!renderer.name.StartsWith("Route_", StringComparison.OrdinalIgnoreCase))
                 continue;

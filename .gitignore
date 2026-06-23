@@ -57,6 +57,8 @@ Desktop.ini
 
 # Local captures
 /Captures/
+/Assets/Screenshots/
+/Assets/TerrainDemoScene_URP/
 
 # Local IDE setup
 /.vsconfig
@@ -78,3 +80,4 @@ Desktop.ini
 # Backup files
 *.backup.*
 *.pre-keyboard-first.backup.*
+*.blend1

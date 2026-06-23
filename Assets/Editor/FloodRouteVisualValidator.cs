@@ -9,7 +9,7 @@ public class FloodRouteVisualValidator : EditorWindow
         Debug.Log("=== FLOOD ROUTE VISUAL VALIDATION START ===");
         int issueCount = 0;
 
-        var badges = FindObjectsByType<TMPro.TextMeshProUGUI>(FindObjectsInactive.Exclude);
+        var badges = FindObjectsByType<TMPro.TextMeshProUGUI>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
         Debug.Log($"Found {badges.Length} TMPro components");
 
         foreach (var badge in badges)

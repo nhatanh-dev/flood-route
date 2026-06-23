@@ -325,7 +325,7 @@ public static class CinematicCameraProductionUpgrade
     {
         int disabled = 0;
         foreach (Renderer renderer in UnityEngine.Object.FindObjectsByType<Renderer>(
-                     FindObjectsInactive.Include))
+                     FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             Transform parent = renderer.transform.parent;
             if (parent == null || parent.name != "Identity_Refuge_Local_PalmCluster")

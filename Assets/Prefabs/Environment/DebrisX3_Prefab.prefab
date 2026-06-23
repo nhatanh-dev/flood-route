@@ -48,6 +48,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -5817703319643409551, guid: 6c63efe7364daec4a98ad631fd4f0e51, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 75
+      objectReference: {fileID: 0}
+    - target: {fileID: -5817703319643409551, guid: 6c63efe7364daec4a98ad631fd4f0e51, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 75
+      objectReference: {fileID: 0}
+    - target: {fileID: -5817703319643409551, guid: 6c63efe7364daec4a98ad631fd4f0e51, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 75
+      objectReference: {fileID: 0}
     - target: {fileID: -1942148817155680615, guid: 6c63efe7364daec4a98ad631fd4f0e51, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -59,7 +71,7 @@ PrefabInstance:
     - target: {fileID: -1568923003805574862, guid: 6c63efe7364daec4a98ad631fd4f0e51, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: b38ceb36701981b4c95359c635b85e04, type: 2}
+      objectReference: {fileID: 2100000, guid: a2b9ad4128050e946a9560b427ceb5b6, type: 2}
     - target: {fileID: 919132149155446097, guid: 6c63efe7364daec4a98ad631fd4f0e51, type: 3}
       propertyPath: m_Name
       value: DebrisX3_Prefab
@@ -72,6 +84,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: f4faf08e478fd854c8a42a022d3b711e, type: 2}
+    - target: {fileID: 6616332975495703755, guid: 6c63efe7364daec4a98ad631fd4f0e51, type: 3}
+      propertyPath: m_Layer
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

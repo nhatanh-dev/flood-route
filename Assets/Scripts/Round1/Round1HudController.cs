@@ -90,8 +90,8 @@ namespace Round1
         private void RefreshPlayingHud(int remainingTurns)
         {
             statusText.text =
-                $"TURNS LEFT: {remainingTurns}    CARGO: {rescueController.Cargo}/{rescueController.CargoCapacity}    SAVED: {rescueController.Saved}/{rescueController.TotalCivilians}\n" +
-                "MOVE: WASD / ARROWS    WAIT: Q";
+                $"Lượt còn lại: {remainingTurns}    Trên thuyền: {rescueController.Cargo}/{rescueController.CargoCapacity}    Đã cứu: {rescueController.Saved}/{rescueController.TotalCivilians}\n" +
+                "Click điểm kế bên để di chuyển thuyền. Nhấn Q để chờ.";
         }
 
         private void RefreshResultHud(string resultLine)

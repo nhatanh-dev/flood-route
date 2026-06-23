@@ -1,0 +1,56 @@
+{
+  "checks": {
+    "single_required_collection_exists": true,
+    "all_objects_in_basedock_collection": true,
+    "no_text_objects_or_labels": true,
+    "no_boats": true,
+    "has_majority_flood_water": true,
+    "has_raised_platform": true,
+    "has_centered_ochre_building": true,
+    "has_raised_house_columns_and_balcony": true,
+    "has_hip_roof": true,
+    "has_four_round_columns": true,
+    "has_front_door_windows_and_side_window": true,
+    "has_left_side_stairs": true,
+    "has_two_center_green_megaphones": true,
+    "flag_front_right": true,
+    "front_sandbags_symmetric": true,
+    "has_crates_and_electrical_box": true,
+    "required_materials": true
+  },
+  "passed": true,
+  "object_count": 192,
+  "mesh_count": 185,
+  "collections": [
+    "BaseDock_Diorama"
+  ],
+  "materials": [
+    "mat_concrete_grey",
+    "mat_crate_brown",
+    "mat_dark_wood",
+    "mat_edge_highlight_wet",
+    "mat_flat_dark_recess",
+    "mat_flood_water",
+    "mat_megaphone_green",
+    "mat_metal_grey",
+    "mat_ochre_wall",
+    "mat_railing_olive_dark",
+    "mat_red_flag",
+    "mat_red_tile",
+    "mat_red_tile_dark",
+    "mat_sandbag_tan",
+    "mat_wet_concrete_dark"
+  ],
+  "cameras": [
+    "Cam_Isometric_Game_Readability",
+    "Cam_Orthographic_Front",
+    "Cam_Orthographic_Side",
+    "Cam_Orthographic_Top"
+  ],
+  "datablock_counts": {
+    "cameras": 4,
+    "lights": 2,
+    "meshes": 185,
+    "materials": 15
+  }
+}

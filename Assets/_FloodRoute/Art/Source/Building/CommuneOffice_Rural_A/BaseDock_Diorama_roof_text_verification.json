@@ -1,0 +1,14 @@
+{
+  "checks": {
+    "roof_text_mesh_present": true,
+    "roof_text_backplate_present": true,
+    "text_is_top_facing": true,
+    "vietnam_star_still_present": true,
+    "roof_line_artifacts_still_removed": true,
+    "small_roof_flags_still_removed": true
+  },
+  "passed": true,
+  "text": "Nhà văn hoá cộng đồng tránh lũ",
+  "placement": "top-facing flat roof plate",
+  "object_count": 162
+}

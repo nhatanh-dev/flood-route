@@ -119,7 +119,7 @@ public static class FloodRouteAssetSwapper
         isoCamera.depth = 100f;
         isoCamera.clearFlags = CameraClearFlags.Skybox;
 
-        foreach (var camera in Object.FindObjectsByType<Camera>(FindObjectsInactive.Include))
+        foreach (var camera in Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             if (camera != isoCamera)
             {
@@ -549,7 +549,7 @@ public static class FloodRouteAssetSwapper
             CreateRoofSandbags(generatedRoot.transform, houseEGraphics.transform, sandbag)
         };
 
-        var routes = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include)
+        var routes = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
             .Where(item => item.name.StartsWith("Route_"))
             .ToArray();
 
@@ -627,10 +627,10 @@ public static class FloodRouteAssetSwapper
             CreateBlueBarrel(detailRoot.transform, "Prop_Blue_Hydro_Barrel_02", desiredPositions[7], 102f, barrelBlue)
         };
 
-        var routes = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include)
+        var routes = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
             .Where(item => item.name.StartsWith("Route_"))
             .ToArray();
-        var rings = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include)
+        var rings = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
             .Where(item => item.name.StartsWith("Node_Ring_"))
             .ToArray();
 
@@ -1092,7 +1092,7 @@ public static class FloodRouteAssetSwapper
     private static void ResolveBuildingTreeClearance(Transform buildingRoot)
     {
         var buildingBounds = GetRendererBounds(buildingRoot);
-        foreach (var tree in Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude))
+        foreach (var tree in Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
         {
             if (!tree.name.Contains("Tree") || tree.IsChildOf(buildingRoot))
             {

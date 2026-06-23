@@ -30,6 +30,14 @@ public sealed class FloodWaterCurrentAnimator : MonoBehaviour
 
     void Update()
     {
+        if (waterRenderer == null)
+            waterRenderer = GetComponent<Renderer>();
+
+        if (waterRenderer == null)
+            return;
+
+        properties ??= new MaterialPropertyBlock();
+
         float speedX = Time.time * 0.02f;
         float speedZ = Time.time * 0.01f;
 

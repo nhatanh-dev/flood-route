@@ -1,0 +1,43 @@
+{
+  "checks": {
+    "small_roof_flags_removed": true,
+    "main_flag_and_pole_kept": true,
+    "yellow_star_present_on_main_flag": true,
+    "roof_floating_lines_removed": true,
+    "sandbags_thick_and_stacked": true,
+    "megaphones_are_flared_loudspeakers": true,
+    "no_text_labels": true,
+    "single_collection": true
+  },
+  "passed": true,
+  "removed_roof_flags": [],
+  "remaining_roof_line_artifacts": [],
+  "sandbag_count": 28,
+  "loudspeakers": [
+    "center_roof_green_flared_loudspeaker_1",
+    "center_roof_green_flared_loudspeaker_2"
+  ],
+  "object_count": 160,
+  "mesh_count": 153,
+  "materials": [
+    "mat_concrete_grey",
+    "mat_crate_brown",
+    "mat_dark_wood",
+    "mat_edge_highlight_wet",
+    "mat_flat_dark_recess",
+    "mat_flood_water",
+    "mat_megaphone_green",
+    "mat_metal_grey",
+    "mat_ochre_wall",
+    "mat_railing_olive_dark",
+    "mat_red_flag",
+    "mat_red_tile",
+    "mat_red_tile_dark",
+    "mat_sandbag_tan",
+    "mat_vietnam_star_yellow",
+    "mat_wet_concrete_dark"
+  ],
+  "collections": [
+    "BaseDock_Diorama"
+  ]
+}

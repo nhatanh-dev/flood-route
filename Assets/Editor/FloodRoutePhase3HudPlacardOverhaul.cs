@@ -227,7 +227,7 @@ public static class FloodRoutePhase3HudPlacardOverhaul
         ConfigurePrefabPlacard("Assets/Prefabs/Environment/House_Prefab.prefab");
         ConfigurePrefabPlacard("Assets/Prefabs/Environment/Tree_Prefab.prefab");
 
-        foreach (var canvas in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Exclude))
+        foreach (var canvas in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
         {
             if (canvas.name == "Node_Status_Canvas")
             {
