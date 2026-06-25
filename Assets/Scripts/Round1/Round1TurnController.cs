@@ -63,9 +63,7 @@ namespace Round1
 
         public bool TryRequestWait()
         {
-            if (!CanAcceptAction()
-                || boatController.CurrentNode != Round1NodeId.BenPhu
-                || !debrisController.IsRouteBlocked)
+            if (!CanAcceptAction())
             {
                 return false;
             }

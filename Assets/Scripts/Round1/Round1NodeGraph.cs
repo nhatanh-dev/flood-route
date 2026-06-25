@@ -65,6 +65,29 @@ namespace Round1
             return nodeTransforms.TryGetValue(id, out Transform nodeTransform) ? nodeTransform : null;
         }
 
+        public Round1NodeId? GetNodeIdFromTransform(Transform t)
+        {
+            Initialize();
+            foreach(var kvp in nodeTransforms)
+            {
+                if (kvp.Value == t || kvp.Value.gameObject == t.gameObject) return kvp.Key;
+            }
+            
+            // Fallback: check names or parent names
+            string tName = t.name.ToLower();
+            if (t.parent != null) tName += " " + t.parent.name.ToLower();
+            
+            foreach(var kvp in nodeTransforms)
+            {
+                string keyName = kvp.Key.ToString().ToLower();
+                if (tName.Contains(keyName) || (keyName == "base" && tName.Contains("base")))
+                {
+                    return kvp.Key;
+                }
+            }
+            return null;
+        }
+
         public bool AreAdjacent(Round1NodeId from, Round1NodeId to)
         {
             Initialize();

@@ -14,6 +14,13 @@ namespace Round1
 
         private void Awake()
         {
+            // In the First-Person prototype scene, the Round1FirstPersonInteraction handles all HUD
+            // updates directly using the shared named TMP objects. Disable this controller to avoid conflict.
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.Contains("FirstPerson"))
+            {
+                enabled = false;
+                return;
+            }
             EnsureReferences();
         }
 
@@ -70,17 +77,30 @@ namespace Round1
 
             int remainingTurns = Mathf.Max(0, turnController.MaxTurns - turnController.CurrentTurn);
 
+            if (sceneReferences != null && sceneReferences.winLosePanel != null)
+            {
+                sceneReferences.winLosePanel.SetActive(result != Round1Result.Playing);
+            }
+
             if (result == Round1Result.Won)
             {
-                RefreshResultHud(
-                    $"RESCUE COMPLETE!    SAVED: {rescueController.Saved}/{rescueController.TotalCivilians}    TURNS LEFT: {remainingTurns}");
+                if (sceneReferences != null && sceneReferences.winLoseTitle != null)
+                {
+                    sceneReferences.winLoseTitle.text = "HOÀN THÀNH!";
+                    sceneReferences.winLoseSub.text = "Đã đưa người dân tới điểm trú.";
+                }
+                RefreshResultHud(remainingTurns, true);
                 return;
             }
 
             if (result == Round1Result.Lost)
             {
-                RefreshResultHud(
-                    $"RESCUE FAILED    SAVED: {rescueController.Saved}/{rescueController.TotalCivilians}    TURNS LEFT: 0");
+                if (sceneReferences != null && sceneReferences.winLoseTitle != null)
+                {
+                    sceneReferences.winLoseTitle.text = "HẾT LƯỢT!";
+                    sceneReferences.winLoseSub.text = "Hãy thử lại.";
+                }
+                RefreshResultHud(remainingTurns, false);
                 return;
             }
 
@@ -89,14 +109,51 @@ namespace Round1
 
         private void RefreshPlayingHud(int remainingTurns)
         {
-            statusText.text =
-                $"Lượt còn lại: {remainingTurns}    Trên thuyền: {rescueController.Cargo}/{rescueController.CargoCapacity}    Đã cứu: {rescueController.Saved}/{rescueController.TotalCivilians}\n" +
-                "Click điểm kế bên để di chuyển thuyền. Nhấn Q để chờ.";
+            var boat = FindAnyObjectByType<Round1BoatController>();
+            bool atBenPhu = boat != null && boat.CurrentNode == Round1NodeId.BenPhu;
+            var debris = FindAnyObjectByType<Round1DebrisController>();
+            bool debrisBlocked = debris != null && debris.IsRouteBlocked;
+            
+            bool isFP = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.Contains("FirstPerson");
+            
+            string objective = "Cứu 3 người ở các nhà ngập nước.";
+            if (rescueController.Cargo > 0 || rescueController.Saved > 0)
+            {
+                objective = "Đưa người dân tới Điểm trú.";
+            }
+            if (!isFP && atBenPhu && debrisBlocked)
+            {
+                objective = "Nhấn Q để chờ nước cuốn rác trôi.";
+            }
+            
+            if (isFP)
+            {
+                statusText.text =
+                    $"Lượt còn lại: Không giới hạn    Trên thuyền: {rescueController.Cargo}/{rescueController.CargoCapacity}    Đã cứu: {rescueController.Saved}/{rescueController.TotalCivilians}\n" +
+                    $"Nhiệm vụ: {objective}\n" +
+                    (!string.IsNullOrEmpty(interactionPrompt) ? $"{interactionPrompt}\n" : "") +
+                    "Điều khiển: WASD để lái. Chuột để nhìn.";
+            }
+            else
+            {
+                statusText.text =
+                    $"Lượt còn lại: {remainingTurns}    Trên thuyền: {rescueController.Cargo}/{rescueController.CargoCapacity}    Đã cứu: {rescueController.Saved}/{rescueController.TotalCivilians}\n" +
+                    $"Nhiệm vụ: {objective}\n" +
+                    "Điều khiển: Click điểm kế bên để đi. Nhấn Q để chờ.";
+            }
+        }
+        
+        private string interactionPrompt = "";
+        public void SetInteractionPrompt(string prompt)
+        {
+            interactionPrompt = prompt;
+            UpdateHud();
         }
 
-        private void RefreshResultHud(string resultLine)
+        private void RefreshResultHud(int remainingTurns, bool isWin)
         {
-            statusText.text = resultLine + "\nPRESS R TO RETRY";
+            statusText.text = $"Lượt còn lại: {remainingTurns}    Trên thuyền: {rescueController.Cargo}/{rescueController.CargoCapacity}    Đã cứu: {rescueController.Saved}/{rescueController.TotalCivilians}\n" +
+                $"Kết quả: {(isWin ? "Hoàn thành! Đã đưa người dân tới điểm trú." : "Hết lượt! Hãy thử lại.")}\nPRESS R TO RETRY";
         }
 
         private void Subscribe()

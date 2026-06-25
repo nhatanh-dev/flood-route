@@ -151,10 +151,12 @@ namespace Round1
 
         private bool PickupFromNhaBa()
         {
+            if (RemainingAtNhaBa <= 0) return false;
             int availableCargoSlots = Mathf.Max(0, CargoCapacity - Cargo);
             int pickupCount = Mathf.Min(RemainingAtNhaBa, availableCargoSlots);
             if (pickupCount <= 0)
             {
+                ShowFeedback("Thuyền đã đầy.");
                 return false;
             }
 
@@ -165,20 +167,24 @@ namespace Round1
                 Cargo += 1;
                 DisableNhaBaCivilianVisual(civilianIndex);
             }
+            ShowFeedback($"Đã đón {pickupCount} người.");
 
             return true;
         }
 
         private bool PickupFromNhaTu()
         {
-            if (RemainingAtNhaTu <= 0 || Cargo >= CargoCapacity)
+            if (RemainingAtNhaTu <= 0) return false;
+            if (Cargo >= CargoCapacity)
             {
+                ShowFeedback("Thuyền đã đầy.");
                 return false;
             }
 
             RemainingAtNhaTu = 0;
             Cargo += 1;
             SetCivilianVisualActive(sceneReferences != null ? sceneReferences.civilianR1NhaTu1 : null, false);
+            ShowFeedback($"Đã đón 1 người.");
             return true;
         }
 
@@ -199,6 +205,7 @@ namespace Round1
 
         private bool DropOffAtBaiDinh()
         {
+            if (Cargo <= 0) return false;
             int destinationSlots = Mathf.Max(0, BaiDinhCapacity - SavedAtBaiDinh);
             int dropCount = Mathf.Min(Cargo, destinationSlots);
             if (dropCount <= 0)
@@ -209,11 +216,13 @@ namespace Round1
             Cargo -= dropCount;
             Saved += dropCount;
             SavedAtBaiDinh += dropCount;
+            ShowFeedback($"Đã đưa {dropCount} người tới điểm trú.");
             return true;
         }
 
         private bool DropOffAtGoCao()
         {
+            if (Cargo <= 0) return false;
             int destinationSlots = Mathf.Max(0, GoCaoCapacity - SavedAtGoCao);
             int dropCount = Mathf.Min(Cargo, destinationSlots);
             if (dropCount <= 0)
@@ -224,6 +233,7 @@ namespace Round1
             Cargo -= dropCount;
             Saved += dropCount;
             SavedAtGoCao += dropCount;
+            ShowFeedback($"Đã đưa {dropCount} người tới điểm trú.");
             return true;
         }
 
@@ -234,6 +244,21 @@ namespace Round1
                 : sceneReferences != null ? sceneReferences.civilianR1NhaBa2 : null;
 
             SetCivilianVisualActive(civilianVisual, false);
+        }
+
+        private void ShowFeedback(string msg)
+        {
+            if (sceneReferences != null && sceneReferences.feedbackText != null)
+            {
+                sceneReferences.feedbackText.text = msg;
+                StartCoroutine(ClearFeedbackRoutine(sceneReferences.feedbackText));
+            }
+        }
+        
+        private System.Collections.IEnumerator ClearFeedbackRoutine(TMPro.TMP_Text text)
+        {
+            yield return new WaitForSeconds(2f);
+            if (text != null && text.text != "") text.text = "";
         }
 
         private static void SetCivilianVisualActive(Transform civilianVisual, bool active)

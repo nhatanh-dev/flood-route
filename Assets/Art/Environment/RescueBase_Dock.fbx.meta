@@ -3,7 +3,27 @@ guid: 316080426036f514da3d45de7d146fd7
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: FR_Base_Warm_Light
+    second: {fileID: 2100000, guid: cb8ebafc94aeb874e99937c2169daf28, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: FR_Safety_Green
+    second: {fileID: 2100000, guid: 7cddc8fe165f47546a7a438d047f1b57, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: FR_Wood_Dark_Post
+    second: {fileID: 2100000, guid: 94754dd71b6ea6746ab9c9013b2cdef1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: FR_Wood_Warm_Plank
+    second: {fileID: 2100000, guid: f1dee7ab18153fb4b8e212c2efd86dd6, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

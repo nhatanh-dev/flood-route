@@ -22,6 +22,10 @@ namespace Round1
 
         [Header("HUD")]
         public TMP_Text statusText;
+        public TMP_Text feedbackText;
+        public GameObject winLosePanel;
+        public TMP_Text winLoseTitle;
+        public TMP_Text winLoseSub;
 
         [Header("Civilian Visuals")]
         public Transform civilianR1NhaBa1;

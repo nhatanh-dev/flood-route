@@ -45,6 +45,7 @@ public sealed class RouteVisualManager : MonoBehaviour
 
     [Header("Route Width")]
     [SerializeField] private float routeLineWidth = 0.052f;
+    [SerializeField] private float availableRouteLineWidth = 0.08f;
     [SerializeField] private float suggestedRouteLineWidth = 0.086f;
     [SerializeField] private float activeRouteLineWidth = 0.094f;
     [SerializeField] private float blockedRouteLineWidth = 0.075f;
@@ -71,7 +72,12 @@ public sealed class RouteVisualManager : MonoBehaviour
     [SerializeField] private float haloDiameter = 0.46f;
     [SerializeField] private float haloThickness = 0.075f;
     [SerializeField] private float haloHeightOffset = 0.012f;
+    [SerializeField] private float nodeHaloAlpha = 1.0f;
     [SerializeField] private Material haloMaterial;
+
+    [Header("Y Offsets")]
+    [SerializeField] private float routeVisualYOffset = 0.16f;
+    [SerializeField] private float nodeVisualYOffset = 0.18f;
 
     [Header("Update")]
     [SerializeField] private float refreshSeconds = 0.08f;
@@ -422,11 +428,14 @@ public sealed class RouteVisualManager : MonoBehaviour
         }
 
         RouteNode currentNode = boatMover != null ? boatMover.CurrentNode : null;
+
+        // Current node always wins
         if (node == currentNode)
         {
             return NodeVisualState.Current;
         }
 
+        // Check reachability from current position
         if (currentNode != null && graphManager != null)
         {
             RouteEdge edge = graphManager.GetEdgeBetween(currentNode, node);
@@ -437,23 +446,20 @@ public sealed class RouteVisualManager : MonoBehaviour
 
             if (graphManager.CanMove(currentNode, node))
             {
+                // Reachable neighbor: show type identity or Available
+                if (node.NodeType == NodeType.Objective) return NodeVisualState.RescueTarget;
+                if (node.NodeType == NodeType.Shelter)   return NodeVisualState.Shelter;
                 return NodeVisualState.Available;
             }
         }
 
+        // Non-adjacent: keep special identity regardless of visited state
+        if (node.NodeType == NodeType.Objective) return NodeVisualState.RescueTarget;
+        if (node.NodeType == NodeType.Shelter)   return NodeVisualState.Shelter;
+
         if (completedNodes.Contains(node))
         {
             return NodeVisualState.Completed;
-        }
-
-        if (node.NodeType == NodeType.Objective)
-        {
-            return NodeVisualState.RescueTarget;
-        }
-
-        if (node.NodeType == NodeType.Shelter)
-        {
-            return NodeVisualState.Shelter;
         }
 
         return NodeVisualState.Normal;
@@ -511,6 +517,9 @@ public sealed class RouteVisualManager : MonoBehaviour
             return;
         }
 
+        // Apply node visual Y offset (local to parent node)
+        marker.localPosition = new Vector3(marker.localPosition.x, nodeVisualYOffset, marker.localPosition.z);
+
         Color color = GetNodeColor(state);
         if (nodeRenderers.TryGetValue(node, out Renderer[] renderers))
         {
@@ -521,6 +530,8 @@ public sealed class RouteVisualManager : MonoBehaviour
         {
             ApplyColor(halo, new Color(color.r, color.g, color.b, Mathf.Clamp01(color.a * GetHaloAlpha(state))));
             halo.enabled = state != NodeVisualState.Completed || color.a > 0.15f;
+            // Update local position of the halo
+            halo.transform.localPosition = new Vector3(0f, haloHeightOffset, 0f);
         }
 
         ApplyNodeScale(node, state);
@@ -542,6 +553,8 @@ public sealed class RouteVisualManager : MonoBehaviour
         marker.localScale = Vector3.one * targetScale;
     }
 
+    private static readonly AnimationCurve FlatCurve = AnimationCurve.Constant(0f, 1f, 1f);
+
     private void ApplyRouteVisual(RouteEdge edge, RouteVisualState state)
     {
         LineRenderer lineRenderer = edge.GetComponent<LineRenderer>();
@@ -550,12 +563,38 @@ public sealed class RouteVisualManager : MonoBehaviour
             return;
         }
 
+        // Set line width directly via startWidth/endWidth (most reliable approach).
+        // widthCurve is reset to flat-1 so startWidth == actual world-unit width.
+        float targetWidth = GetRouteWidth(state);
+        lineRenderer.widthCurve = FlatCurve;
+        lineRenderer.widthMultiplier = 1f;
+        lineRenderer.startWidth = targetWidth;
+        lineRenderer.endWidth   = targetWidth;
+
         Color color = GetRouteColor(state);
         lineRenderer.startColor = color;
-        lineRenderer.endColor = color;
-        lineRenderer.widthMultiplier = GetRouteWidth(state);
+        lineRenderer.endColor   = color;
         lineRenderer.numCornerVertices = Mathf.Max(lineRenderer.numCornerVertices, 4);
-        lineRenderer.numCapVertices = Mathf.Max(lineRenderer.numCapVertices, 4);
+        lineRenderer.numCapVertices    = Mathf.Max(lineRenderer.numCapVertices, 4);
+
+        if (edge.FromNode != null && edge.ToNode != null)
+        {
+            Vector3 p0 = edge.FromNode.transform.position;
+            p0.y += routeVisualYOffset;
+            Vector3 p1 = edge.ToNode.transform.position;
+            p1.y += routeVisualYOffset;
+
+            if (lineRenderer.useWorldSpace)
+            {
+                lineRenderer.SetPosition(0, p0);
+                lineRenderer.SetPosition(1, p1);
+            }
+            else
+            {
+                lineRenderer.SetPosition(0, lineRenderer.transform.InverseTransformPoint(p0));
+                lineRenderer.SetPosition(1, lineRenderer.transform.InverseTransformPoint(p1));
+            }
+        }
     }
 
     private Color GetNodeColor(NodeVisualState state)
@@ -603,6 +642,7 @@ public sealed class RouteVisualManager : MonoBehaviour
     {
         return state switch
         {
+            RouteVisualState.Available => availableRouteLineWidth,
             RouteVisualState.Suggested => suggestedRouteLineWidth,
             RouteVisualState.Active => activeRouteLineWidth,
             RouteVisualState.Blocked => blockedRouteLineWidth,
@@ -612,7 +652,7 @@ public sealed class RouteVisualManager : MonoBehaviour
 
     private float GetHaloAlpha(NodeVisualState state)
     {
-        return state switch
+        float baseAlpha = state switch
         {
             NodeVisualState.Current => 0.72f,
             NodeVisualState.Available => 0.58f,
@@ -622,6 +662,7 @@ public sealed class RouteVisualManager : MonoBehaviour
             NodeVisualState.Completed => 0.25f,
             _ => 0.35f
         };
+        return baseAlpha * nodeHaloAlpha;
     }
 
     private Renderer FindOrCreateHalo(Transform marker)

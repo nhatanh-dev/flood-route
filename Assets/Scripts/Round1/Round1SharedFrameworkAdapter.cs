@@ -75,6 +75,13 @@ namespace Round1
 
         private void Awake()
         {
+            // In the First-Person prototype scene, Round1FirstPersonInteraction owns all HUD updates.
+            // Disable this adapter so it doesn't overwrite the instruction/counter text.
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.Contains("FirstPerson"))
+            {
+                enabled = false;
+                return;
+            }
             EnsureReferences();
             CacheBaseScales();
             if (legacyHudToDisable != null)

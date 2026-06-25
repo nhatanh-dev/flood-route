@@ -21,6 +21,7 @@ namespace Round1
 
         private void Awake()
         {
+            if (!isActiveAndEnabled) return;
             Initialize();
         }
 
@@ -151,6 +152,7 @@ namespace Round1
 
         private void SnapBoatTo(Round1NodeId nodeId)
         {
+            UnityEngine.Debug.Log("SnapBoatTo called! Stack:\n" + UnityEngine.StackTraceUtility.ExtractStackTrace());
             EnsureReferences();
 
             Transform nodeTransform = nodeGraph != null ? nodeGraph.GetNodeTransform(nodeId) : null;

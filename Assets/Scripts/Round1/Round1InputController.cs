@@ -51,32 +51,76 @@ namespace Round1
 
             if (keyboard.qKey.wasPressedThisFrame)
             {
-                turnController.TryRequestWait();
+                if (turnController.TryRequestWait())
+                {
+                    if (boatController.CurrentNode == Round1NodeId.BenPhu)
+                    {
+                        ShowFeedback("Đã chờ nước cuốn rác trôi.");
+                    }
+                    else
+                    {
+                        ShowFeedback("Đã chờ 1 lượt.");
+                    }
+                }
                 return;
             }
 
-            if (keyboard.wKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame)
+            Mouse mouse = Mouse.current;
+            if (mouse != null && mouse.leftButton.wasPressedThisFrame)
             {
-                TryMoveInDirection(Vector3.forward);
+                HandleMouseClick(mouse.position.ReadValue());
                 return;
             }
+        }
 
-            if (keyboard.sKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame)
+        private void HandleMouseClick(Vector2 mousePosition)
+        {
+            Camera mainCam = Camera.main;
+            if (mainCam == null) return;
+            
+            Ray ray = mainCam.ScreenPointToRay(mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit, 100f))
             {
-                TryMoveInDirection(Vector3.back);
-                return;
+                Transform hitTransform = hit.collider.transform;
+                Round1NodeId? clickedNodeId = nodeGraph.GetNodeIdFromTransform(hitTransform);
+                if (clickedNodeId.HasValue)
+                {
+                    Round1NodeId currentNode = boatController.CurrentNode;
+                    if (clickedNodeId.Value == currentNode) return;
+                    
+                    if (nodeGraph.AreAdjacent(currentNode, clickedNodeId.Value))
+                    {
+                        if (nodeGraph.CanTraverse(currentNode, clickedNodeId.Value))
+                        {
+                            turnController.TryRequestMove(clickedNodeId.Value);
+                        }
+                        else
+                        {
+                            ShowFeedback("Đường đang bị chặn.");
+                        }
+                    }
+                    else
+                    {
+                        ShowFeedback("Chỉ có thể đi tới node kề.");
+                    }
+                }
             }
-
-            if (keyboard.aKey.wasPressedThisFrame || keyboard.leftArrowKey.wasPressedThisFrame)
+        }
+        
+        private void ShowFeedback(string msg)
+        {
+            var sceneRefs = FindAnyObjectByType<Round1SceneReferences>();
+            if (sceneRefs != null && sceneRefs.feedbackText != null)
             {
-                TryMoveInDirection(Vector3.left);
-                return;
+                sceneRefs.feedbackText.text = msg;
+                StartCoroutine(ClearFeedbackRoutine(sceneRefs.feedbackText));
             }
-
-            if (keyboard.dKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame)
-            {
-                TryMoveInDirection(Vector3.right);
-            }
+        }
+        
+        private System.Collections.IEnumerator ClearFeedbackRoutine(TMPro.TMP_Text text)
+        {
+            yield return new WaitForSeconds(2f);
+            if (text != null) text.text = "";
         }
 
         private bool ShouldIgnoreInput()
