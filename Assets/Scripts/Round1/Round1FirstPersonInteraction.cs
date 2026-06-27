@@ -15,6 +15,7 @@ namespace Round1
     {
         [Header("Detection")]
         public float interactRadius = 6f;
+        public float rescueMaxInteractSpeed = 0.35f;
 
         // ── cached refs ───────────────────────────────────────────────────────
         private Round1RescueController rescueController;
@@ -43,6 +44,8 @@ namespace Round1
         private GameObject nhaTuBadgeRoot;
         private TMP_Text   nhaBaBadgeText;
         private TMP_Text   nhaTuBadgeText;
+        private GameObject nhaBaPeopleRoot;
+        private GameObject nhaTuPeopleRoot;
 
         // ── state ─────────────────────────────────────────────────────────────
         private bool gameOver;
@@ -84,6 +87,8 @@ namespace Round1
             // Badge roots
             nhaBaBadgeRoot = GameObject.Find("R1_RescueBadge_NhaBa_2Nguoi");
             nhaTuBadgeRoot = GameObject.Find("R1_RescueBadge_NhaTu_1Nguoi");
+            nhaBaPeopleRoot = GameObject.Find("R1_RescuePeople_NhaBa_2");
+            nhaTuPeopleRoot = GameObject.Find("R1_NhaTu_RescueAnchor");
 
             // Get the count-label TMP inside each badge (first TMP_Text that shows a number)
             if (nhaBaBadgeRoot != null)
@@ -136,59 +141,87 @@ namespace Round1
             float boatSpeed = 0f;
             var boatCtrl = GetComponent<Round1FirstPersonBoatController>();
             if (boatCtrl != null) boatSpeed = Mathf.Abs(boatCtrl.currentSpeed);
-            float maxInteractSpeed = 1.2f;
+            float maxInteractSpeed = rescueMaxInteractSpeed;
 
             int cargo = realtimeController != null ? realtimeController.currentCargo : 0;
             int capacity = realtimeController != null ? realtimeController.boatCapacity : 3;
             string objText = realtimeController != null ? realtimeController.currentObjectiveText : "";
 
-            if (nearNhaBa && objText.Contains("Nhà cần cứu 1"))
+            if (insideRescueZoneA)
             {
-                if (cargo < capacity)
+                if (realtimeController != null && !realtimeController.rescuedA && objText.Contains("Nhà cần cứu 1"))
                 {
                     if (boatSpeed <= maxInteractSpeed)
                     {
                         prompt = "Nhấn E để cứu 2 người.";
-                        // if (ePressed) DoPickupNhaBa(); // disabled for now as requested
+                        if (ePressed)
+                        {
+                            if (realtimeController.TryRescueA(2))
+                            {
+                                ShowFeedback("Đã cứu 2 người lên thuyền.");
+                                if (nhaBaBadgeRoot != null) nhaBaBadgeRoot.SetActive(false);
+                                if (nhaBaPeopleRoot != null) nhaBaPeopleRoot.SetActive(false);
+                                prompt = ""; // cleared
+                            }
+                        }
                     }
                     else
                     {
-                        prompt = "Giảm tốc để tiếp cận an toàn.";
+                        prompt = "Dừng thuyền để cứu người an toàn.";
                     }
                 }
             }
-            else if (nearNhaTu && objText.Contains("Nhà cần cứu 2"))
+            else if (insideRescueZoneB)
             {
-                if (cargo < capacity)
+                if (realtimeController != null && !realtimeController.rescuedB && objText.Contains("Nhà cần cứu 2"))
                 {
                     if (boatSpeed <= maxInteractSpeed)
                     {
                         prompt = "Nhấn E để cứu 1 người.";
-                        // if (ePressed) DoPickupNhaTu(); // disabled for now as requested
+                        if (ePressed)
+                        {
+                            if (realtimeController.TryRescueB(1))
+                            {
+                                ShowFeedback("Đã cứu thêm 1 người.");
+                                if (nhaTuBadgeRoot != null) nhaTuBadgeRoot.SetActive(false);
+                                if (nhaTuPeopleRoot != null) nhaTuPeopleRoot.SetActive(false);
+                                prompt = ""; // cleared
+                            }
+                        }
                     }
                     else
                     {
-                        prompt = "Giảm tốc để tiếp cận an toàn.";
+                        prompt = "Dừng thuyền để cứu người an toàn.";
                     }
                 }
             }
-            else if (nearShelter)
+            else if (insideShelterZone)
             {
-                if (cargo > 0 && objText.Contains("Điểm trú"))
+                if (objText.ToLower().Contains("điểm trú"))
                 {
-                    if (boatSpeed <= maxInteractSpeed)
+                    if (cargo <= 0)
                     {
-                        prompt = "Nhấn E để đưa người dân vào điểm trú.";
-                        // if (ePressed) DoDropOff(); // disabled for now as requested
+                        prompt = "Chưa có người dân trên thuyền.";
                     }
                     else
                     {
-                        prompt = "Giảm tốc để cập bến an toàn.";
+                        if (boatSpeed <= maxInteractSpeed)
+                        {
+                            prompt = "Nhấn E để đưa người dân vào điểm trú.";
+                            if (ePressed)
+                            {
+                                if (realtimeController.TryDropOff())
+                                {
+                                    ShowFeedback("Đã đưa 3 người dân vào điểm trú an toàn.");
+                                    prompt = "";
+                                }
+                            }
+                        }
+                        else
+                        {
+                            prompt = "Dừng thuyền để cập bến an toàn.";
+                        }
                     }
-                }
-                else if (cargo == 0)
-                {
-                    prompt = "Chưa có người dân trên thuyền.";
                 }
             }
 
@@ -265,6 +298,24 @@ namespace Round1
             CheckWin();
         }
 
+        private bool insideRescueZoneA = false;
+        private bool insideRescueZoneB = false;
+        private bool insideShelterZone = false;
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.name == "R1_RescueZone_A") insideRescueZoneA = true;
+            else if (other.name == "R1_RescueZone_B") insideRescueZoneB = true;
+            else if (other.name == "R1_ShelterDropoffZone") insideShelterZone = true;
+        }
+
+        private void OnTriggerExit(Collider other)
+        {
+            if (other.name == "R1_RescueZone_A") insideRescueZoneA = false;
+            else if (other.name == "R1_RescueZone_B") insideRescueZoneB = false;
+            else if (other.name == "R1_ShelterDropoffZone") insideShelterZone = false;
+        }
+
         // ─────────────────────────────────────────────────────────────────────
         //  HUD helpers
         // ─────────────────────────────────────────────────────────────────────
@@ -294,8 +345,8 @@ namespace Round1
 
         public void HideGameplayHUD()
         {
-            if (txtTurn != null) txtTurn.transform.parent.gameObject.SetActive(false);
-            if (txtMessage != null) txtMessage.gameObject.SetActive(false);
+            if (txtTurn != null && txtTurn.transform.parent != null) txtTurn.transform.parent.gameObject.SetActive(false);
+            if (txtMessage != null && txtMessage.transform.parent != null) txtMessage.transform.parent.gameObject.SetActive(false);
         }
 
         private void SetObjective(string interactPrompt)
