@@ -23,6 +23,49 @@ namespace Round1
         [Header("Objectives")]
         public string currentObjectiveText = "Đi cứu Nhà cần cứu 1.";
 
+        [Header("Rescue State")]
+        public bool rescuedA = false;
+        public bool rescuedB = false;
+
+        public bool TryRescueA(int amount)
+        {
+            if (rescuedA || endState != Round1EndState.Playing) return false;
+            if (currentCargo + amount > boatCapacity) return false;
+
+            currentCargo += amount;
+            rescuedA = true;
+            currentObjectiveText = "Đi cứu Nhà cần cứu 2.";
+            return true;
+        }
+
+        public bool TryRescueB(int amount)
+        {
+            if (rescuedB || endState != Round1EndState.Playing) return false;
+            if (!rescuedA) return false; // Must rescue A first
+            if (currentCargo + amount > boatCapacity) return false;
+
+            currentCargo += amount;
+            rescuedB = true;
+            currentObjectiveText = "Đưa người dân về điểm trú.";
+            return true;
+        }
+
+        public bool TryDropOff()
+        {
+            if (endState != Round1EndState.Playing || currentCargo <= 0) return false;
+            
+            civiliansSafe += currentCargo;
+            currentCargo = 0;
+            currentObjectiveText = "An toàn.";
+
+            if (civiliansSafe >= totalCivilians)
+            {
+                TriggerWin();
+            }
+
+            return true;
+        }
+
         [Header("Damage Settings")]
         public bool enableCollisionDamage = true;
         public int collisionDamage = 1;
@@ -30,9 +73,16 @@ namespace Round1
         public float damageCooldown = 1.0f;
         public float collisionDamageFeedbackDuration = 1.2f;
 
+        public enum Round1EndState
+        {
+            Playing,
+            Win,
+            Fail
+        }
+
         private float lastDamageTime = -999f;
-        private bool isGameOver = false;
-        public bool IsGameOver => isGameOver;
+        private Round1EndState endState = Round1EndState.Playing;
+        public bool IsGameOver => endState != Round1EndState.Playing;
 
         private Round1FirstPersonInteraction interactionScript;
 
@@ -45,7 +95,15 @@ namespace Round1
 
         private void Update()
         {
-            if (isGameOver) return;
+            if (endState != Round1EndState.Playing)
+            {
+                if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.rKey.wasPressedThisFrame)
+                {
+                    Time.timeScale = 1f;
+                    UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+                }
+                return;
+            }
 
             if (currentTimeRemaining > 0)
             {
@@ -53,14 +111,14 @@ namespace Round1
                 if (currentTimeRemaining <= 0)
                 {
                     currentTimeRemaining = 0;
-                    TriggerFail("Hết thời gian!");
+                    TriggerFail("Hết thời gian!", "Bạn đã không hoàn thành việc cứu hộ trước khi hết thời gian.");
                 }
             }
         }
 
         public void ApplyBoatDamage(int amount, string reason)
         {
-            if (!enableCollisionDamage || isGameOver) return;
+            if (!enableCollisionDamage || endState != Round1EndState.Playing) return;
 
             if (Time.time - lastDamageTime < damageCooldown) return;
 
@@ -75,14 +133,14 @@ namespace Round1
 
             if (currentBoatDurability <= 0)
             {
-                TriggerFail("Thuyền bị hỏng!");
+                TriggerFail("Thuyền bị hỏng!", "Thuyền đã va chạm quá nhiều. Hãy lái chậm và tránh vật cản.");
             }
         }
 
-        private void TriggerFail(string failReason)
+        private void TriggerFail(string failReason, string failDetail)
         {
-            if (isGameOver) return;
-            isGameOver = true;
+            if (endState != Round1EndState.Playing) return;
+            endState = Round1EndState.Fail;
 
             // Force HUD update one last time before locking, then hide it
             if (interactionScript != null)
@@ -97,6 +155,7 @@ namespace Round1
             Time.timeScale = 0f;
             
             // Unlock Cursor so player can click Retry
+            // Unlock Cursor so player can click Retry
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
 
@@ -110,47 +169,38 @@ namespace Round1
             var warningCanvas = GameObject.Find("BoundaryWarningCanvas");
             if (warningCanvas != null) warningCanvas.SetActive(false);
 
-            var refs = FindAnyObjectByType<Round1SceneReferences>();
-            if (refs != null && refs.winLosePanel != null)
+            var endgameUI = FindAnyObjectByType<Round1EndgameUIController>();
+            if (endgameUI != null)
             {
-                var canvas = refs.winLosePanel.GetComponentInParent<Canvas>(true);
-                if (canvas != null) 
-                {
-                    canvas.gameObject.SetActive(true);
-                    // Hide old turn-based UI elements that share this canvas
-                    foreach (UnityEngine.Transform child in canvas.transform)
-                    {
-                        if (child != refs.winLosePanel.transform)
-                        {
-                            child.gameObject.SetActive(false);
-                        }
-                    }
-                }
+                endgameUI.ShowLose(failReason, failDetail);
+            }
+        }
 
-                refs.winLosePanel.SetActive(true);
-                refs.winLosePanel.transform.SetAsLastSibling();
+        private void TriggerWin()
+        {
+            if (endState != Round1EndState.Playing) return;
+            endState = Round1EndState.Win;
 
-                if (refs.winLoseTitle != null) 
-                {
-                    refs.winLoseTitle.gameObject.SetActive(true);
-                    refs.winLoseTitle.text = "THẤT BẠI";
-                }
-                if (refs.winLoseSub != null) 
-                {
-                    refs.winLoseSub.gameObject.SetActive(true);
-                    refs.winLoseSub.text = failReason;
-                }
+            if (interactionScript != null)
+            {
+                var method = interactionScript.GetType().GetMethod("RefreshHUD", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (method != null) method.Invoke(interactionScript, null);
+                
+                var hideMethod = interactionScript.GetType().GetMethod("HideGameplayHUD", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (hideMethod != null) hideMethod.Invoke(interactionScript, null);
+            }
 
-                var btn = refs.winLosePanel.GetComponentInChildren<UnityEngine.UI.Button>(true);
-                if (btn != null)
-                {
-                    btn.gameObject.SetActive(true);
-                    btn.onClick.RemoveAllListeners();
-                    btn.onClick.AddListener(() => {
-                        Time.timeScale = 1f;
-                        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
-                    });
-                }
+            Time.timeScale = 0f;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
+            var boat = FindAnyObjectByType<Round1FirstPersonBoatController>();
+            if (boat != null) boat.enabled = false;
+
+            var endgameUI = FindAnyObjectByType<Round1EndgameUIController>();
+            if (endgameUI != null)
+            {
+                endgameUI.ShowWin();
             }
         }
     }

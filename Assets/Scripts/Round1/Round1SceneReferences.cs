@@ -26,6 +26,31 @@ namespace Round1
         public GameObject winLosePanel;
         public TMP_Text winLoseTitle;
         public TMP_Text winLoseSub;
+        
+        [HideInInspector] public GameObject winPanel;
+        [HideInInspector] public GameObject failPanel;
+
+        private void Awake()
+        {
+            if (winLosePanel != null)
+            {
+                failPanel = winLosePanel;
+                failPanel.name = "R1_FailPanel";
+            }
+
+            if (winPanel == null)
+            {
+                var all = Resources.FindObjectsOfTypeAll<Transform>();
+                foreach (var t in all)
+                {
+                    if (t.name == "R1_WinPanel" && t.gameObject.scene.isLoaded)
+                    {
+                        winPanel = t.gameObject;
+                        break;
+                    }
+                }
+            }
+        }
 
         [Header("Civilian Visuals")]
         public Transform civilianR1NhaBa1;

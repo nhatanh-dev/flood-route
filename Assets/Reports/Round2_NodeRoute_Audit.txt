@@ -1,0 +1,113 @@
+ROUND 2 NODE & ROUTE COORDINATE AUDIT
+=======================================
+
+A. NODE COORDINATE EXTRACTION
+-----------------------------
+Total Nodes Found: 13
+
+| Node Object     | World Position (X,Y,Z)   | XZ Position      | Current Role / Guess       |
+|-----------------|--------------------------|------------------|----------------------------|
+| R2_BASE         | -7.51, -0.10, -3.85      | X:-7.51 Z:-3.85  | Start / Base               |
+| R2_BO_TAY       | -5.63, -0.10, -2.11      | X:-5.63 Z:-2.11  | Main Route (Curve)         |
+| R2_NGA_RE       | -4.08, -0.10, -4.90      | X:-4.08 Z:-4.90  | Central T-Junction (Ngã rẽ)|
+| R2_TUYEN_CHINH  | -1.20, -0.10, -4.56      | X:-1.20 Z:-4.56  | Main Route (Tuyến chính)   |
+| R2_CAU_TROI     |  0.86, -0.10, -4.07      | X: 0.86 Z:-4.07  | Hazard / Bridge            |
+| R2_NHA_SONG     |  3.93, -0.10, -2.76      | X: 3.93 Z:-2.76  | Rescue Point (Nhà sập)     |
+| R2_DIEM_TRU     |  6.69, -0.10, -2.80      | X: 6.69 Z:-2.80  | Safe Shelter (Điểm trú)    |
+| R2_VONG_A       | -2.76, -0.10, -7.72      | X:-2.76 Z:-7.72  | Detour Branch (Đường vòng) |
+| R2_VONG_B       | -0.25, -0.10, -7.19      | X:-0.25 Z:-7.19  | Detour Branch              |
+| R2_VONG_C       |  2.24, -0.10, -6.82      | X: 2.24 Z:-6.82  | Detour Branch              |
+| R2_VONG_D       |  4.06, -0.10, -5.19      | X: 4.06 Z:-5.19  | Detour Branch              |
+| R2_BAI_CHO      | -1.22, -0.10, -0.98      | X:-1.22 Z:-0.98  | Market / Rescue Branch     |
+| R2_COC_TIEU     |  2.39, -0.10, -0.17      | X: 2.39 Z:-0.17  | Dead End / Post            |
+
+
+B. ROUTE / EDGE EXTRACTION
+--------------------------
+Total Edges Found: 13
+*All edge connections were explicitly inferred from edge GameObject names.*
+
+| Edge Object                                           | From Node      | To Node           | Distance XZ | Explicit/Inferred |
+|-------------------------------------------------------|----------------|-------------------|-------------|-------------------|
+| Edge_R2_BASE_R2_BO_TAY                                | R2_BASE        | R2_BO_TAY         | 2.56 m      | Inferred          |
+| Edge_R2_BO_TAY_R2_NGA_RE                              | R2_BO_TAY      | R2_NGA_RE         | 3.19 m      | Inferred          |
+| Edge_R2_NGA_RE_R2_TUYEN_CHINH_BLOCKED_PLACEHOLDER     | R2_NGA_RE      | R2_TUYEN_CHINH    | 2.90 m      | Inferred          |
+| Edge_R2_TUYEN_CHINH_R2_CAU_TROI                       | R2_TUYEN_CHINH | R2_CAU_TROI       | 2.12 m      | Inferred          |
+| Edge_R2_CAU_TROI_R2_NHA_SONG                          | R2_CAU_TROI    | R2_NHA_SONG       | 3.34 m      | Inferred          |
+| Edge_R2_NHA_SONG_R2_DIEM_TRU                          | R2_NHA_SONG    | R2_DIEM_TRU       | 2.76 m      | Inferred          |
+| Edge_R2_NGA_RE_R2_VONG_A                              | R2_NGA_RE      | R2_VONG_A         | 3.11 m      | Inferred          |
+| Edge_R2_VONG_A_R2_VONG_B                              | R2_VONG_A      | R2_VONG_B         | 2.57 m      | Inferred          |
+| Edge_R2_VONG_B_R2_VONG_C                              | R2_VONG_B      | R2_VONG_C         | 2.52 m      | Inferred          |
+| Edge_R2_VONG_C_R2_VONG_D                              | R2_VONG_C      | R2_VONG_D         | 2.44 m      | Inferred          |
+| Edge_R2_VONG_D_R2_NHA_SONG                            | R2_VONG_D      | R2_NHA_SONG       | 2.43 m      | Inferred          |
+| Edge_R2_NGA_RE_R2_BAI_CHO                             | R2_NGA_RE      | R2_BAI_CHO        | 4.85 m      | Inferred          |
+| Edge_R2_BAI_CHO_R2_COC_TIEU                           | R2_BAI_CHO     | R2_COC_TIEU       | 3.70 m      | Inferred          |
+
+
+C. ADJACENCY GRAPH
+------------------
+R2_BASE
+ * connects to R2_BO_TAY
+
+R2_BO_TAY
+ * connects to R2_NGA_RE
+
+R2_NGA_RE
+ * connects to R2_TUYEN_CHINH
+ * connects to R2_VONG_A
+ * connects to R2_BAI_CHO
+
+R2_TUYEN_CHINH
+ * connects to R2_CAU_TROI
+
+R2_CAU_TROI
+ * connects to R2_NHA_SONG
+
+R2_VONG_A -> R2_VONG_B -> R2_VONG_C -> R2_VONG_D
+ * R2_VONG_D connects to R2_NHA_SONG
+
+R2_BAI_CHO
+ * connects to R2_COC_TIEU
+
+R2_NHA_SONG
+ * connects to R2_DIEM_TRU
+
+
+D. DISTANCE ANALYSIS
+--------------------
+1. Shortest segment: R2_TUYEN_CHINH -> R2_CAU_TROI (2.12m)
+2. Longest segment: R2_NGA_RE -> R2_BAI_CHO (4.85m)
+3. Average segment distance: ~2.96m
+4. Segments shorter than 4m: 12 segments
+5. Segments longer than 10m: 0 segments
+6. Segments too short for first-person boat: ALL of them (2-4m is barely longer than the boat itself).
+7. Useful main route sections: If combining nodes (e.g. R2_BASE to R2_NGA_RE is ~5.7m straight line), it becomes a viable first-person space.
+8. Useful branch sections: R2_NGA_RE to R2_BAI_CHO/COC_TIEU combined is ~8.5m.
+
+
+E. CURRENT MAP SHAPE SUMMARY
+----------------------------
+1. Shape: Branching/Multi-path.
+2. Main route: R2_BASE -> R2_NGA_RE -> R2_TUYEN_CHINH -> R2_NHA_SONG -> R2_DIEM_TRU.
+3. Central T-junction: R2_NGA_RE (It acts as a 3-way split).
+4. Start/Base candidate: R2_BASE.
+5. Shelter candidate: R2_DIEM_TRU.
+6. Rescue candidates: R2_NHA_SONG (Middle) and R2_BAI_CHO (Top Branch).
+7. Hazard candidates: The "Vong" (bottom) detour or the blocked "Tuyen Chinh" gap.
+
+
+F. RECOMMENDATION FOR NEW ROUND 2 LAYOUT
+----------------------------------------
+
+| New Gameplay Role       | Suggested Old Node / Area | Reason                                                                 |
+|-------------------------|---------------------------|------------------------------------------------------------------------|
+| Start                   | R2_BASE                   | Already positioned at the edge of the map as a natural entry point.    |
+| Main Route Point 1      | R2_BO_TAY                 | Natural curve into the village. Stretch this area out for more space.  |
+| Central Junction        | R2_NGA_RE                 | Excellent central pivot separating the market from the residential hub.|
+| Rescue Branch A         | R2_BAI_CHO & R2_COC_TIEU  | Northern dead-end. Perfect for forcing the player to reverse boat.     |
+| Rescue Branch B         | R2_NHA_SONG               | Southern hub. Already set up visually with stranded civilians.         |
+| Shelter / Safe Dropoff  | R2_DIEM_TRU               | Far eastern high ground, perfect endpoint.                             |
+| Moving Debris Area 1    | R2_TUYEN_CHINH (Bridge)   | Tight chokepoint; great for a floating log hazard.                     |
+| Moving Debris Area 2    | R2_VONG_A to VONG_D       | Wide secondary channel where larger debris can drift freely.           |
+
+Note: The old nodes are packed way too tightly (2-4m apart). For the real-time driving experience, you will need to scale the distances up slightly, or just delete the intermediate nodes and treat the whole area between them as one continuous open driving zone.
