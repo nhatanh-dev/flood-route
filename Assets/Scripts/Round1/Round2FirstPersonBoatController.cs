@@ -83,6 +83,8 @@ namespace Round2
         public float CurrentSpeedAbs => Mathf.Abs(currentSpeed);
         private float pitch;
         private float cameraYaw;
+        private float softImpactTimer;
+        private Vector3 softImpactVelocity;
 
         private void Awake()
         {
@@ -225,6 +227,30 @@ namespace Round2
             if (roundController != null && !roundController.IsPlaying())
             {
                 currentSpeed = 0f;
+                softImpactTimer = 0f;
+                softImpactVelocity = Vector3.zero;
+                return;
+            }
+
+            if (softImpactTimer > 0f)
+            {
+                softImpactTimer -= Time.deltaTime;
+                currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, brakeDeceleration * Time.deltaTime);
+
+                if (boatRoot != null)
+                {
+                    boatRoot.position += softImpactVelocity * Time.deltaTime;
+                }
+
+                if (softImpactTimer <= 0f)
+                {
+                    softImpactVelocity = Vector3.zero;
+                }
+
+                DoDepenetration();
+                Vector3 impactPos = boatRoot.position;
+                impactPos.y = waterY;
+                boatRoot.position = impactPos;
                 return;
             }
 
@@ -540,6 +566,24 @@ namespace Round2
                 Vector3 moveDir = GetBoatForwardDirection();
                 Gizmos.DrawRay(center, moveDir * 2f);
             }
+        }
+
+        public void ApplySoftImpact(Vector3 impactDirection, float speedMultiplier, float lockDuration)
+        {
+            if (boatRoot == null)
+            {
+                return;
+            }
+
+            impactDirection.y = 0f;
+            if (impactDirection.sqrMagnitude < 0.0001f)
+            {
+                impactDirection = -GetBoatForwardDirection();
+            }
+
+            currentSpeed *= Mathf.Clamp01(speedMultiplier);
+            softImpactTimer = Mathf.Max(0f, lockDuration);
+            softImpactVelocity = impactDirection.normalized * 0.55f;
         }
         
         private void ProcessCollision(Collider col, Vector3 hitPoint, Vector3 normal)
