@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: b3c0af3c207b6e44d8e45e968e089af3
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - buttonGroup: {instanceID: 0}
+  - btnStart: {instanceID: 0}
+  - btnInstructions: {instanceID: 0}
+  - btnQuit: {instanceID: 0}
+  - videoPanel: {instanceID: 0}
+  - videoPlayer: {instanceID: 0}
+  - btnSkip: {instanceID: 0}
+  - introClip: {fileID: 32900000, guid: 8ef49ec5a9fb3f148bd71281ef861846, type: 3}
+  - roundSelectionPanel: {instanceID: 0}
+  - btnStartRound1: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
