@@ -29,10 +29,10 @@ namespace Round1
         public TMP_Text txtRetryHint;
 
         private R1RealtimeRoundController roundController;
-        private static readonly Color VictoryAccent = new Color(0.38f, 0.56f, 0.47f, 1f);
-        private static readonly Color DefeatAccent = new Color(0.62f, 0.31f, 0.25f, 1f);
-        private static readonly Color VictoryTitle = new Color(0.22f, 0.38f, 0.30f, 1f);
-        private static readonly Color DefeatTitle = new Color(0.36f, 0.16f, 0.12f, 1f);
+        private static readonly Color VictoryAccent = new Color(0.35f, 0.50f, 0.41f, 1f); // #5A8069 (slightly darker victory accent)
+        private static readonly Color DefeatAccent = new Color(0.55f, 0.27f, 0.23f, 1f); // #8C453A (slightly darker defeat accent)
+        private static readonly Color VictoryTitle = new Color(0.47f, 0.66f, 0.54f, 1f); // #78A88B (brightened muted sage green)
+        private static readonly Color DefeatTitle = new Color(0.72f, 0.36f, 0.30f, 1f); // #B85B4D (brightened muted terracotta red)
         private static readonly Color OverlayColor = new Color(0.015f, 0.045f, 0.045f, 0.64f);
 
         private void Awake()
@@ -69,11 +69,16 @@ namespace Round1
             {
                 txtTitle.text = "HOÀN THÀNH";
                 txtTitle.color = VictoryTitle;
+                if (txtTitle.fontMaterial != null)
+                {
+                    txtTitle.fontMaterial.SetColor("_GlowColor", new Color(0f, 0f, 0f, 0.6f)); // Dark underlay/shadow instead of glow
+                }
             }
 
             if (txtSubtitle != null)
             {
                 txtSubtitle.text = "Bạn đã đưa tất cả người dân đến nơi an toàn.";
+                txtSubtitle.color = new Color(0.97f, 0.95f, 0.92f, 1f); // Slightly brightened warm off-white
                 txtSubtitle.gameObject.SetActive(true);
             }
 
@@ -82,6 +87,8 @@ namespace Round1
                 int safe = roundController != null ? roundController.civiliansSafe : 3;
                 int total = roundController != null ? roundController.totalCivilians : 3;
                 txtDetail.text = $"Cứu hộ thành công: {safe}/{total} người";
+                txtDetail.fontSize = 21f; // Emphasized
+                txtDetail.color = new Color(0.97f, 0.95f, 0.92f, 1f); // Slightly brightened warm off-white
                 txtDetail.gameObject.SetActive(true);
             }
 
@@ -109,17 +116,24 @@ namespace Round1
             {
                 txtTitle.text = "THẤT BẠI";
                 txtTitle.color = DefeatTitle;
+                if (txtTitle.fontMaterial != null)
+                {
+                    txtTitle.fontMaterial.SetColor("_GlowColor", new Color(0f, 0f, 0f, 0.6f)); // Dark underlay/shadow instead of glow
+                }
             }
 
             if (txtSubtitle != null)
             {
                 txtSubtitle.text = reason;
+                txtSubtitle.color = new Color(0.97f, 0.95f, 0.92f, 1f); // Slightly brightened warm off-white
                 txtSubtitle.gameObject.SetActive(!string.IsNullOrEmpty(reason));
             }
 
             if (txtDetail != null)
             {
                 txtDetail.text = detail;
+                txtDetail.fontSize = 18f; // Secondary explanatory text
+                txtDetail.color = new Color(0.80f, 0.83f, 0.81f, 1f); // Slightly brightened gray-green
                 txtDetail.gameObject.SetActive(!string.IsNullOrEmpty(detail));
             }
 
