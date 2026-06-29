@@ -19,13 +19,24 @@ namespace Round1
         public TMP_Text txtTitle;
         public TMP_Text txtSubtitle;
         public TMP_Text txtDetail;
+        public TMP_Text txtStats;
+
+        [Header("Outcome Accent")]
+        public Image outcomeAccent;
 
         [Header("Button")]
         public Button btnRetry;
         public TMP_Text txtRetryHint;
 
+        private R1RealtimeRoundController roundController;
+        private static readonly Color VictoryAccent = new Color(0.40f, 0.62f, 0.49f, 1f);
+        private static readonly Color DefeatAccent = new Color(0.66f, 0.28f, 0.24f, 1f);
+        private static readonly Color OverlayColor = new Color(0.02f, 0.08f, 0.09f, 0.76f);
+
         private void Awake()
         {
+            roundController = FindAnyObjectByType<R1RealtimeRoundController>();
+
             if (endgameRoot != null)
                 endgameRoot.SetActive(false);
 
@@ -44,10 +55,10 @@ namespace Round1
                 endgameRoot.SetActive(true);
 
             if (backgroundImage != null)
-                backgroundImage.gameObject.SetActive(true);
+                backgroundImage.gameObject.SetActive(false);
 
             if (dimOverlay != null)
-                dimOverlay.color = new Color(0, 0, 0, 0.45f);
+                dimOverlay.color = OverlayColor;
 
             var rainAudio = FindObjectOfType<R1RainAmbienceController>();
             if (rainAudio != null) rainAudio.FadeToEndgameVolume();
@@ -55,8 +66,7 @@ namespace Round1
             if (txtTitle != null)
             {
                 txtTitle.text = "HOÀN THÀNH";
-                ColorUtility.TryParseHtmlString("#FFD700", out Color gold);
-                txtTitle.color = gold;
+                txtTitle.color = VictoryAccent;
             }
 
             if (txtSubtitle != null)
@@ -67,9 +77,14 @@ namespace Round1
 
             if (txtDetail != null)
             {
-                txtDetail.text = "Cứu hộ thành công: 3/3 người";
+                int safe = roundController != null ? roundController.civiliansSafe : 3;
+                int total = roundController != null ? roundController.totalCivilians : 3;
+                txtDetail.text = $"Cứu hộ thành công: {safe}/{total} người";
                 txtDetail.gameObject.SetActive(true);
             }
+
+            ApplyOutcomeAccent(VictoryAccent);
+            RefreshStats(includeRescueCount: false);
         }
 
         public void ShowLose(string reason, string detail)
@@ -83,7 +98,7 @@ namespace Round1
                 backgroundImage.gameObject.SetActive(false);
 
             if (dimOverlay != null)
-                dimOverlay.color = new Color(0, 0, 0, 0.65f);
+                dimOverlay.color = OverlayColor;
 
             var rainAudio = FindObjectOfType<R1RainAmbienceController>();
             if (rainAudio != null) rainAudio.FadeToEndgameVolume();
@@ -91,8 +106,7 @@ namespace Round1
             if (txtTitle != null)
             {
                 txtTitle.text = "THẤT BẠI";
-                ColorUtility.TryParseHtmlString("#FF3333", out Color red);
-                txtTitle.color = red;
+                txtTitle.color = DefeatAccent;
             }
 
             if (txtSubtitle != null)
@@ -106,6 +120,32 @@ namespace Round1
                 txtDetail.text = detail;
                 txtDetail.gameObject.SetActive(!string.IsNullOrEmpty(detail));
             }
+
+            ApplyOutcomeAccent(DefeatAccent);
+            RefreshStats(includeRescueCount: true);
+        }
+
+        private void ApplyOutcomeAccent(Color color)
+        {
+            if (outcomeAccent != null)
+                outcomeAccent.color = color;
+        }
+
+        private void RefreshStats(bool includeRescueCount)
+        {
+            if (txtStats == null || roundController == null)
+                return;
+
+            int minutes = Mathf.FloorToInt(roundController.currentTimeRemaining / 60f);
+            int seconds = Mathf.FloorToInt(roundController.currentTimeRemaining % 60f);
+            string time = $"{minutes:00}:{seconds:00}";
+            string boat = $"Độ bền thuyền còn lại: {roundController.currentBoatDurability}/{roundController.maxBoatDurability}";
+            string remaining = $"Thời gian còn lại: {time}";
+
+            txtStats.text = includeRescueCount
+                ? $"Người dân an toàn: {roundController.civiliansSafe}/{roundController.totalCivilians}\n{boat}\n{remaining}"
+                : $"{boat}\n{remaining}";
+            txtStats.gameObject.SetActive(true);
         }
 
         private void HideGameplayHUD()
