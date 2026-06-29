@@ -29,9 +29,11 @@ namespace Round1
         public TMP_Text txtRetryHint;
 
         private R1RealtimeRoundController roundController;
-        private static readonly Color VictoryAccent = new Color(0.40f, 0.62f, 0.49f, 1f);
-        private static readonly Color DefeatAccent = new Color(0.66f, 0.28f, 0.24f, 1f);
-        private static readonly Color OverlayColor = new Color(0.02f, 0.08f, 0.09f, 0.76f);
+        private static readonly Color VictoryAccent = new Color(0.38f, 0.56f, 0.47f, 1f);
+        private static readonly Color DefeatAccent = new Color(0.62f, 0.31f, 0.25f, 1f);
+        private static readonly Color VictoryTitle = new Color(0.22f, 0.38f, 0.30f, 1f);
+        private static readonly Color DefeatTitle = new Color(0.36f, 0.16f, 0.12f, 1f);
+        private static readonly Color OverlayColor = new Color(0.015f, 0.045f, 0.045f, 0.64f);
 
         private void Awake()
         {
@@ -66,7 +68,7 @@ namespace Round1
             if (txtTitle != null)
             {
                 txtTitle.text = "HOÀN THÀNH";
-                txtTitle.color = VictoryAccent;
+                txtTitle.color = VictoryTitle;
             }
 
             if (txtSubtitle != null)
@@ -106,7 +108,7 @@ namespace Round1
             if (txtTitle != null)
             {
                 txtTitle.text = "THẤT BẠI";
-                txtTitle.color = DefeatAccent;
+                txtTitle.color = DefeatTitle;
             }
 
             if (txtSubtitle != null)
@@ -139,12 +141,10 @@ namespace Round1
             int minutes = Mathf.FloorToInt(roundController.currentTimeRemaining / 60f);
             int seconds = Mathf.FloorToInt(roundController.currentTimeRemaining % 60f);
             string time = $"{minutes:00}:{seconds:00}";
-            string boat = $"Độ bền thuyền còn lại: {roundController.currentBoatDurability}/{roundController.maxBoatDurability}";
-            string remaining = $"Thời gian còn lại: {time}";
-
-            txtStats.text = includeRescueCount
-                ? $"Người dân an toàn: {roundController.civiliansSafe}/{roundController.totalCivilians}\n{boat}\n{remaining}"
-                : $"{boat}\n{remaining}";
+            txtStats.text =
+                $"{roundController.civiliansSafe}/{roundController.totalCivilians}\n" +
+                $"{roundController.currentBoatDurability}/{roundController.maxBoatDurability}\n" +
+                time;
             txtStats.gameObject.SetActive(true);
         }
 
