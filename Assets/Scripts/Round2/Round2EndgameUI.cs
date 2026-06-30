@@ -9,6 +9,7 @@ public class Round2EndgameUI : MonoBehaviour
     [Header("References")]
     public Round2RealtimeRoundController roundController;
     public GameObject overlayPanel;
+    public GameObject resultCard;
     public Image outcomeAccent;
     public TextMeshProUGUI txtTitle;
     public TextMeshProUGUI txtSubtitle;
@@ -17,6 +18,13 @@ public class Round2EndgameUI : MonoBehaviour
     public Button btnRetry;
     public TextMeshProUGUI txtRetryText;
     public TextMeshProUGUI txtRetryHint;
+
+    [Header("Campaign Ending")]
+    public Button btnViewCampaignEnding;
+    public GameObject campaignEndingPanel;
+    public Button btnCampaignMenu;
+    public Button btnCampaignRetry;
+    [SerializeField] private string mainMenuSceneName = "MainMenu";
 
     [Header("Optional")]
     public GameObject gameplayHUDCanvas;
@@ -45,9 +53,33 @@ public class Round2EndgameUI : MonoBehaviour
             overlayPanel.SetActive(false);
         }
 
+        if (campaignEndingPanel != null)
+        {
+            campaignEndingPanel.SetActive(false);
+        }
+
         if (btnRetry != null)
         {
+            btnRetry.onClick.RemoveListener(OnRetryClicked);
             btnRetry.onClick.AddListener(OnRetryClicked);
+        }
+
+        if (btnViewCampaignEnding != null)
+        {
+            btnViewCampaignEnding.onClick.RemoveListener(OnViewCampaignEndingClicked);
+            btnViewCampaignEnding.onClick.AddListener(OnViewCampaignEndingClicked);
+        }
+
+        if (btnCampaignMenu != null)
+        {
+            btnCampaignMenu.onClick.RemoveListener(OnCampaignMenuClicked);
+            btnCampaignMenu.onClick.AddListener(OnCampaignMenuClicked);
+        }
+
+        if (btnCampaignRetry != null)
+        {
+            btnCampaignRetry.onClick.RemoveListener(OnRetryClicked);
+            btnCampaignRetry.onClick.AddListener(OnRetryClicked);
         }
     }
 
@@ -86,7 +118,27 @@ public class Round2EndgameUI : MonoBehaviour
             overlayPanel.SetActive(true);
         }
 
+        if (resultCard != null)
+        {
+            resultCard.SetActive(true);
+        }
+
+        if (campaignEndingPanel != null)
+        {
+            campaignEndingPanel.SetActive(false);
+        }
+
         bool isWin = roundController.currentState == Round2GameState.Win;
+        if (btnViewCampaignEnding != null)
+        {
+            btnViewCampaignEnding.gameObject.SetActive(isWin);
+        }
+        if (btnRetry != null)
+        {
+            RectTransform retryRect = btnRetry.GetComponent<RectTransform>();
+            if (retryRect != null)
+                retryRect.anchoredPosition = new Vector2(isWin ? 150f : 0f, -190f);
+        }
 
         if (isWin)
         {
@@ -110,7 +162,7 @@ public class Round2EndgameUI : MonoBehaviour
                 txtMessage.fontSize = 21f;
                 txtMessage.color = new Color(0.97f, 0.95f, 0.92f, 1f); // Slightly brightened warm off-white
             }
-            if (txtRetryText != null) txtRetryText.text = "CHƠI LẠI";
+            if (txtRetryText != null) txtRetryText.text = "CHƠI LẠI ROUND 2";
             ApplyOutcomeAccent(VictoryAccent);
         }
         else // Fail
@@ -196,6 +248,46 @@ public class Round2EndgameUI : MonoBehaviour
 
     private void OnRetryClicked()
     {
+        Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    private void OnViewCampaignEndingClicked()
+    {
+        if (roundController == null || roundController.currentState != Round2GameState.Win)
+            return;
+
+        if (resultCard != null)
+            resultCard.SetActive(false);
+
+        if (campaignEndingPanel != null)
+            campaignEndingPanel.SetActive(true);
+    }
+
+    private void OnCampaignMenuClicked()
+    {
+        if (string.IsNullOrWhiteSpace(mainMenuSceneName))
+        {
+            Debug.LogError("[Round2EndgameUI] Main Menu scene name is not configured.");
+            return;
+        }
+
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(mainMenuSceneName);
+    }
+
+    private void OnDestroy()
+    {
+        if (btnRetry != null)
+            btnRetry.onClick.RemoveListener(OnRetryClicked);
+
+        if (btnViewCampaignEnding != null)
+            btnViewCampaignEnding.onClick.RemoveListener(OnViewCampaignEndingClicked);
+
+        if (btnCampaignMenu != null)
+            btnCampaignMenu.onClick.RemoveListener(OnCampaignMenuClicked);
+
+        if (btnCampaignRetry != null)
+            btnCampaignRetry.onClick.RemoveListener(OnRetryClicked);
     }
 }
