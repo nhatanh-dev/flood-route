@@ -14,5 +14,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Round1_FirstPersonPrototype.unity
     guid: ca22ec718de1d2a418958849e6339c84
+  - enabled: 1
+    path: Assets/Scenes/Round2_MissionBriefing.unity
+    guid: 1d3f0207968a2c6448e56bf5b21aceb4
+  - enabled: 1
+    path: Assets/Scenes/Round2_RealtimePrototype.unity
+    guid: 00c989eff58d5174381c67aba05b996a
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

@@ -26,9 +26,14 @@ namespace Round1
 
         [Header("Button")]
         public Button btnRetry;
+        public Button btnContinueRound2;
         public TMP_Text txtRetryHint;
 
+        [Header("Campaign Flow")]
+        [SerializeField] private string round2BriefingSceneName = "Round2_MissionBriefing";
+
         private R1RealtimeRoundController roundController;
+        private bool isSceneLoading;
         private static readonly Color VictoryAccent = new Color(0.35f, 0.50f, 0.41f, 1f); // #5A8069 (slightly darker victory accent)
         private static readonly Color DefeatAccent = new Color(0.55f, 0.27f, 0.23f, 1f); // #8C453A (slightly darker defeat accent)
         private static readonly Color VictoryTitle = new Color(0.47f, 0.66f, 0.54f, 1f); // #78A88B (brightened muted sage green)
@@ -47,6 +52,14 @@ namespace Round1
                 btnRetry.onClick.RemoveAllListeners();
                 btnRetry.onClick.AddListener(RetryCurrentScene);
             }
+
+            if (btnContinueRound2 != null)
+            {
+                btnContinueRound2.onClick.RemoveAllListeners();
+                btnContinueRound2.onClick.AddListener(OpenRound2Briefing);
+            }
+
+            UpdateActionLayout(false);
         }
 
         public void ShowWin()
@@ -94,6 +107,8 @@ namespace Round1
 
             ApplyOutcomeAccent(VictoryAccent);
             RefreshStats(includeRescueCount: false);
+
+            UpdateActionLayout(true);
         }
 
         public void ShowLose(string reason, string detail)
@@ -139,6 +154,8 @@ namespace Round1
 
             ApplyOutcomeAccent(DefeatAccent);
             RefreshStats(includeRescueCount: true);
+
+            UpdateActionLayout(false);
         }
 
         private void ApplyOutcomeAccent(Color color)
@@ -175,8 +192,51 @@ namespace Round1
 
         public void RetryCurrentScene()
         {
+            if (isSceneLoading)
+                return;
+
+            isSceneLoading = true;
+            SetActionButtonsInteractable(false);
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        public void OpenRound2Briefing()
+        {
+            if (isSceneLoading || string.IsNullOrWhiteSpace(round2BriefingSceneName))
+                return;
+
+            isSceneLoading = true;
+            SetActionButtonsInteractable(false);
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(round2BriefingSceneName);
+        }
+
+        private void SetActionButtonsInteractable(bool interactable)
+        {
+            if (btnRetry != null)
+                btnRetry.interactable = interactable;
+
+            if (btnContinueRound2 != null)
+                btnContinueRound2.interactable = interactable;
+        }
+
+        private void UpdateActionLayout(bool showContinue)
+        {
+            if (btnContinueRound2 != null)
+                btnContinueRound2.gameObject.SetActive(showContinue);
+
+            if (btnRetry != null)
+            {
+                var retryRect = btnRetry.GetComponent<RectTransform>();
+                retryRect.anchoredPosition = new Vector2(showContinue ? -155f : 0f, retryRect.anchoredPosition.y);
+            }
+
+            if (btnContinueRound2 != null)
+            {
+                var continueRect = btnContinueRound2.GetComponent<RectTransform>();
+                continueRect.anchoredPosition = new Vector2(155f, continueRect.anchoredPosition.y);
+            }
         }
     }
 }
