@@ -100,7 +100,9 @@ namespace Round1
             var allTransforms = FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (var t in allTransforms)
             {
-                if (t.name.StartsWith("HUD_Group_Gameplay") || t.name == "TXT_R1_Shared_Objective" || t.name == "TXT_R1_Shared_Message")
+                if (t.name.StartsWith("HUD_Group_Gameplay") ||
+                    t.name == "R1_Shared_HUD_Panel" ||
+                    t.name == "R1_Shared_Message_Panel")
                     gameplayHudElements.Add(t.gameObject);
             }
 
@@ -172,7 +174,33 @@ namespace Round1
 
         private void SetPlanningUiVisible(bool visible)
         {
-            if (planningPanel != null) planningPanel.SetActive(visible);
+            if (planningPanel == null) return;
+
+            planningPanel.SetActive(visible);
+            if (!visible) return;
+
+            foreach (var childName in new[] { "DarkOverlay", "TopBar", "LeftInfoPanel", "RouteOptionsPanel", "FooterBar" })
+            {
+                var child = planningPanel.transform.Find(childName);
+                if (child != null) child.gameObject.SetActive(true);
+            }
+
+            var group = planningPanel.GetComponent<CanvasGroup>();
+            if (group != null)
+            {
+                group.alpha = 1f;
+                group.interactable = false;
+                group.blocksRaycasts = false;
+            }
+        }
+
+        private static void HideContextOverlays()
+        {
+            foreach (var transform in FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (transform.name == "PNL_R1_InteractionPrompt" || transform.name == "PNL_R1_ContextToast")
+                    transform.gameObject.SetActive(false);
+            }
         }
 
         private void OpenPlanningMode()
@@ -191,6 +219,7 @@ namespace Round1
 
             // Show UI
             SetGameplayHudVisible(false);
+            HideContextOverlays();
             SetPlanningUiVisible(true);
             RefreshPlanningUI();
 
@@ -305,13 +334,13 @@ namespace Round1
             switch (node.nodeType)
             {
                 case R1NodeType.Rescue:
-                    return node.isCollected ? "<color=#AAAAAA>Đã đón</color>" : $"<color=#FF8800>Cứu {node.peopleCount} người</color>";
+                    return node.isCollected ? "<color=#AAB2AA>Đã đón</color>" : $"<color=#AB853D>Cứu {node.peopleCount} người</color>";
                 case R1NodeType.Shelter:
-                    return "<color=#44FF88>Điểm trú an toàn</color>";
+                    return "<color=#779B82>Điểm trú an toàn</color>";
                 case R1NodeType.Junction:
-                    return "<color=#44CCFF>Ngã rẽ</color>";
+                    return "<color=#8DA4A0>Ngã rẽ</color>";
                 case R1NodeType.Start:
-                    return "<color=#FFFF44>Bến thuyền</color>";
+                    return "<color=#AB853D>Bến thuyền</color>";
                 default:
                     return "Không rõ";
             }
@@ -321,10 +350,10 @@ namespace Round1
         {
             switch (node.nodeType)
             {
-                case R1NodeType.Rescue:  return node.isCollected ? "#888888" : "#FF8800";
-                case R1NodeType.Shelter: return "#44FF88";
-                case R1NodeType.Junction: return "#44CCFF";
-                default: return "#FFFF44";
+                case R1NodeType.Rescue:  return node.isCollected ? "#8A918A" : "#AB853D";
+                case R1NodeType.Shelter: return "#779B82";
+                case R1NodeType.Junction: return "#8DA4A0";
+                default: return "#AB853D";
             }
         }
 
@@ -379,7 +408,7 @@ namespace Round1
         private void UpdateInstructionText()
         {
             if (instructionText == null) return;
-            const string base_ = "WASD: Lái thuyền | Tab: Bản đồ | E: Cứu/Thả | Q: Chờ";
+            const string base_ = "<b>WASD</b>  Lái thuyền     <b>E</b>  Cứu / Thả     <b>TAB</b>  Bản đồ     <b>Q</b>  Chờ";
             if (routeGraph != null && routeGraph.selectedTargetNode != null)
                 instructionText.text = $"Đi tới {routeGraph.selectedTargetNode.displayName}.\n{base_}";
             else
@@ -451,13 +480,13 @@ namespace Round1
 
                 if (m.node == current)
                 {
-                    c = new Color(1f, 0.95f, 0f);   // Yellow – current
+                    c = new Color(0.67f, 0.52f, 0.24f); // Ochre – current
                     labelText = "★ " + m.node.displayName;
                 }
                 else if (adjacent.Contains(m.node))
                 {
                     // Cyan selectable with number
-                    c = new Color(0f, 0.9f, 1f);
+                    c = new Color(0.55f, 0.65f, 0.63f);
                     string status = "";
                     if (m.node.nodeType == R1NodeType.Rescue && !m.node.isCollected)
                         status = $"\n{m.node.peopleCount} người";
@@ -467,11 +496,11 @@ namespace Round1
                     adjIdx++;
                 }
                 else if (m.node.nodeType == R1NodeType.Rescue)
-                    c = new Color(1f, 0.5f, 0f);    // Orange – rescue
+                    c = new Color(0.67f, 0.52f, 0.24f);
                 else if (m.node.nodeType == R1NodeType.Shelter)
-                    c = new Color(0.2f, 1f, 0.4f);  // Green – shelter
+                    c = new Color(0.47f, 0.61f, 0.51f);
                 else
-                    c = new Color(0.4f, 0.4f, 0.4f); // Grey – unreachable
+                    c = new Color(0.36f, 0.40f, 0.38f);
 
                 m.rend.material.color = c;
                 m.label.text = labelText;
@@ -509,22 +538,28 @@ namespace Round1
         // ─────────────────────────────────────────────────────────────────
         private GameObject BuildPlanningUI()
         {
-            // Find or use R1_Shared_RoundGameUI_Canvas
+            // Always use the active shared gameplay canvas. The previous broad
+            // name search could attach the map to the disabled legacy R1_HUD_Canvas.
             Canvas parentCanvas = null;
+            var sharedCanvas = GameObject.Find("R1_Shared_RoundGameUI_Canvas");
+            if (sharedCanvas != null && sharedCanvas.activeInHierarchy)
+                parentCanvas = sharedCanvas.GetComponent<Canvas>();
+
             var allCanvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            foreach (var c in allCanvases)
-            {
-                if (c.name.Contains("R1_Shared") || c.name.Contains("R1_HUD"))
-                {
-                    parentCanvas = c;
-                    break;
-                }
-            }
-            if (parentCanvas == null && allCanvases.Length > 0)
-                parentCanvas = allCanvases[0];
             if (parentCanvas == null)
             {
-                Debug.LogError("[R1Planning] No Canvas found!");
+                foreach (var c in allCanvases)
+                {
+                    if (c.isActiveAndEnabled && c.name.Contains("R1_Shared"))
+                    {
+                        parentCanvas = c;
+                        break;
+                    }
+                }
+            }
+            if (parentCanvas == null)
+            {
+                Debug.LogError("[R1Planning] Active shared gameplay Canvas not found.");
                 return new GameObject("R1_PlanningUI_Group_ERROR");
             }
 
@@ -537,8 +572,13 @@ namespace Round1
             panelRT.anchorMax = Vector2.one;
             panelRT.offsetMin = Vector2.zero;
             panelRT.offsetMax = Vector2.zero;
+            var canvasGroup = panel.AddComponent<CanvasGroup>();
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
 
             BuildUIElements(panel.transform);
+            ApplyPlanningTypography(panel.transform);
             return panel;
         }
 
@@ -548,71 +588,75 @@ namespace Round1
             var darkOverlay = CreatePanel(root, "DarkOverlay",
                 new Vector2(0f, 0f), new Vector2(1f, 1f),
                 new Vector2(0, 0), new Vector2(0, 0),
-                new Color(0f, 0f, 0f, 0.4f)); // Light translucent overlay
+                new Color(0.02f, 0.05f, 0.05f, 0.24f));
 
             // ── TopBar ──────────────────────────────────────────────────
             var topBar = CreatePanel(root, "TopBar",
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
-                new Vector2(0, -60f), new Vector2(0, 0),
-                new Color(0.05f, 0.15f, 0.25f, 0.9f));
-            CreateTMP(topBar.transform, "TitleText", "BẢN ĐỒ CỨU HỘ - ROUND 1",
-                      28, TextAlignmentOptions.Center, Color.white,
+                new Vector2(0, -76f), new Vector2(0, 0),
+                new Color(0.035f, 0.10f, 0.10f, 0.92f));
+            CreateTMP(topBar.transform, "TitleText", "BẢN ĐỒ CỨU HỘ  •  ROUND 1",
+                      34, TextAlignmentOptions.Center, new Color(0.94f, 0.91f, 0.84f),
                       Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
             // ── LeftInfoPanel ──────────────────────────────────────────
             var leftPanel = CreatePanel(root, "LeftInfoPanel",
                 new Vector2(0f, 0f), new Vector2(0f, 1f),
-                new Vector2(20f, 70f), new Vector2(320f, -80f),
-                new Color(0.05f, 0.1f, 0.15f, 0.85f));
+                new Vector2(24f, 76f), new Vector2(384f, -96f),
+                new Color(0.035f, 0.10f, 0.10f, 0.88f));
 
             var leftLayout = leftPanel.AddComponent<VerticalLayoutGroup>();
-            leftLayout.padding = new RectOffset(20, 20, 20, 20);
-            leftLayout.spacing = 15;
+            leftLayout.padding = new RectOffset(26, 26, 26, 26);
+            leftLayout.spacing = 14;
             leftLayout.childForceExpandWidth = true;
             leftLayout.childForceExpandHeight = false;
 
             txtCurrentNode = CreateTMPInLayout(leftPanel.transform, "TxtCurrentNode",
-                                               "Vị trí hiện tại: –", 18,
-                                               TextAlignmentOptions.Left, Color.white);
+                                               "Vị trí hiện tại: –", 22,
+                                               TextAlignmentOptions.Left, new Color(0.94f, 0.91f, 0.84f));
             txtTurns = CreateTMPInLayout(leftPanel.transform, "TxtTurns",
-                                          "Lượt còn lại: –", 18,
-                                          TextAlignmentOptions.Left, new Color(1f, 0.9f, 0.3f));
+                                          "Lượt còn lại: –", 20,
+                                          TextAlignmentOptions.Left, new Color(0.72f, 0.64f, 0.43f));
             txtCargo = CreateTMPInLayout(leftPanel.transform, "TxtCargo",
-                                          "Trên thuyền: – / 3", 18,
-                                          TextAlignmentOptions.Left, new Color(0.4f, 0.9f, 1f));
+                                          "Trên thuyền: – / 3", 20,
+                                          TextAlignmentOptions.Left, new Color(0.82f, 0.84f, 0.80f));
             txtSaved = CreateTMPInLayout(leftPanel.transform, "TxtSaved",
-                                          "Đã cứu: – / 3", 18,
-                                          TextAlignmentOptions.Left, new Color(0.3f, 1f, 0.5f));
+                                          "Đã cứu: – / 3", 20,
+                                          TextAlignmentOptions.Left, new Color(0.82f, 0.84f, 0.80f));
 
             CreateDivider(leftPanel.transform);
-            CreateTMPInLayout(leftPanel.transform, "TxtObjective",
-                              "Mục tiêu:\nCứu 3 người và đưa về Nhà văn hóa.", 16,
-                              TextAlignmentOptions.Left, new Color(0.8f, 0.8f, 0.8f));
+            var txtMapObjective = CreateTMPInLayout(leftPanel.transform, "TxtObjective",
+                                                    "MỤC TIÊU\nCứu 3 người và đưa về điểm trú.", 19,
+                                                    TextAlignmentOptions.Left, new Color(0.72f, 0.64f, 0.43f));
+            txtMapObjective.GetComponent<LayoutElement>().preferredHeight = 86f;
 
             // ── RouteOptionsPanel ────────────────────────────────────────
             var rightPanel = CreatePanel(root, "RouteOptionsPanel",
                 new Vector2(1f, 0f), new Vector2(1f, 1f),
-                new Vector2(-380f, 70f), new Vector2(-20f, -80f),
-                new Color(0.05f, 0.1f, 0.15f, 0.85f));
+                new Vector2(-424f, 76f), new Vector2(-24f, -96f),
+                new Color(0.035f, 0.10f, 0.10f, 0.88f));
 
             var rightLayout = rightPanel.AddComponent<VerticalLayoutGroup>();
-            rightLayout.padding = new RectOffset(20, 20, 20, 20);
-            rightLayout.spacing = 15;
+            rightLayout.padding = new RectOffset(26, 26, 26, 26);
+            rightLayout.spacing = 14;
             rightLayout.childForceExpandWidth = true;
             rightLayout.childForceExpandHeight = false;
 
             txtRouteOptions = CreateTMPInLayout(rightPanel.transform, "TxtRoutes",
-                                                "Đang tải...", 20,
-                                                TextAlignmentOptions.Left, Color.white);
+                                                "Đang tải...", 22,
+                                                TextAlignmentOptions.Left, new Color(0.94f, 0.91f, 0.84f));
+            var routeLayout = txtRouteOptions.GetComponent<LayoutElement>();
+            routeLayout.preferredHeight = 360f;
+            routeLayout.flexibleHeight = 1f;
 
             // ── Footer ───────────────────────────────────────────────────
             var footerBar = CreatePanel(root, "FooterBar",
                 new Vector2(0f, 0f), new Vector2(1f, 0f),
-                new Vector2(0, 0), new Vector2(0, 50f),
-                new Color(0f, 0.1f, 0.25f, 0.95f));
+                new Vector2(0, 0), new Vector2(0, 58f),
+                new Color(0.035f, 0.10f, 0.10f, 0.92f));
             txtFooter = CreateTMP(footerBar.transform, "TxtFooter",
                                   "Tab: Đóng bản đồ | 1/2/3: Chọn tuyến | Q: Chờ 1 lượt",
-                                  15, TextAlignmentOptions.Center, new Color(0.7f, 0.9f, 1f),
+                                  18, TextAlignmentOptions.Center, new Color(0.82f, 0.84f, 0.80f),
                                   Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         }
 
@@ -627,6 +671,7 @@ namespace Round1
             go.transform.SetParent(parent, false);
             var img = go.AddComponent<Image>();
             img.color = color;
+            img.raycastTarget = false;
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = anchorMin;
             rt.anchorMax = anchorMax;
@@ -655,6 +700,36 @@ namespace Round1
             return tmp;
         }
 
+        private static void ApplyPlanningTypography(Transform root)
+        {
+            var heading = FindLoadedFont("BarlowCondensed_Bold SDF SDF");
+            var label = FindLoadedFont("BarlowCondensed_SemiBold SDF SDF");
+            var body = FindLoadedFont("BeVietnamPro_Medium SDF SDF");
+            var regular = FindLoadedFont("BeVietnamPro_Regular SDF SDF");
+
+            foreach (var text in root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (text.name == "TitleText")
+                    text.font = heading != null ? heading : text.font;
+                else if (text.name == "TxtCurrentNode" || text.name == "TxtObjective")
+                    text.font = label != null ? label : text.font;
+                else if (text.name == "TxtRoutes" || text.name == "TxtFooter")
+                    text.font = regular != null ? regular : text.font;
+                else
+                    text.font = body != null ? body : text.font;
+
+                text.raycastTarget = false;
+                text.overflowMode = TextOverflowModes.Ellipsis;
+            }
+        }
+
+        private static TMP_FontAsset FindLoadedFont(string fontName)
+        {
+            foreach (var font in Resources.FindObjectsOfTypeAll<TMP_FontAsset>())
+                if (font.name == fontName) return font;
+            return null;
+        }
+
         private static TextMeshProUGUI CreateTMPInLayout(Transform parent, string name, string text,
             float fontSize, TextAlignmentOptions align, Color color)
         {
@@ -666,6 +741,7 @@ namespace Round1
             tmp.alignment = align;
             tmp.color     = color;
             tmp.textWrappingMode = TextWrappingModes.Normal;
+            tmp.raycastTarget = false;
 
             var le = go.AddComponent<LayoutElement>();
             le.preferredHeight = fontSize * 2.2f;
@@ -678,7 +754,8 @@ namespace Round1
             var go = new GameObject("Divider");
             go.transform.SetParent(parent, false);
             var img = go.AddComponent<Image>();
-            img.color = new Color(0.3f, 0.5f, 0.7f, 0.5f);
+            img.color = new Color(0.67f, 0.52f, 0.24f, 0.45f);
+            img.raycastTarget = false;
             var le = go.AddComponent<LayoutElement>();
             le.preferredHeight = 1f;
             le.flexibleWidth = 1;
