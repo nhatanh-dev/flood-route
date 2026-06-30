@@ -21,7 +21,7 @@ public class Round2BoatInteraction : MonoBehaviour
         
         if (txtInteractionPrompt != null)
         {
-            txtInteractionPrompt.gameObject.SetActive(false);
+            SetPromptVisible(false);
         }
     }
 
@@ -42,7 +42,7 @@ public class Round2BoatInteraction : MonoBehaviour
             currentZone = null;
             if (txtInteractionPrompt != null)
             {
-                txtInteractionPrompt.gameObject.SetActive(false);
+                SetPromptVisible(false);
             }
         }
     }
@@ -51,10 +51,7 @@ public class Round2BoatInteraction : MonoBehaviour
     {
         if (roundController == null || !roundController.IsPlaying())
         {
-            if (txtInteractionPrompt != null && txtInteractionPrompt.gameObject.activeSelf)
-            {
-                txtInteractionPrompt.gameObject.SetActive(false);
-            }
+            SetPromptVisible(false);
             return;
         }
 
@@ -64,24 +61,24 @@ public class Round2BoatInteraction : MonoBehaviour
             
             if (txtInteractionPrompt != null)
             {
-                txtInteractionPrompt.gameObject.SetActive(true);
+                SetPromptVisible(true);
 
                 if (currentZone.zoneType == Round2ZoneType.Rescue)
                 {
                     if (currentZone.civiliansAvailable <= 0)
                     {
                         txtInteractionPrompt.text = "Không còn người cần cứu ở đây";
-                        txtInteractionPrompt.color = Color.gray;
+                        txtInteractionPrompt.color = new Color(0.72f, 0.75f, 0.71f);
                     }
                     else if (!speedOk)
                     {
                         txtInteractionPrompt.text = "Dừng thuyền lại để cứu người";
-                        txtInteractionPrompt.color = Color.red;
+                        txtInteractionPrompt.color = new Color(0.82f, 0.58f, 0.45f);
                     }
                     else
                     {
                         txtInteractionPrompt.text = "Nhấn E để cứu người";
-                        txtInteractionPrompt.color = Color.yellow;
+                        txtInteractionPrompt.color = new Color(0.94f, 0.91f, 0.82f);
                     }
                 }
                 else if (currentZone.zoneType == Round2ZoneType.Dropoff)
@@ -89,17 +86,17 @@ public class Round2BoatInteraction : MonoBehaviour
                     if (roundController.currentCargo == 0)
                     {
                         txtInteractionPrompt.text = "Chưa có người dân trên thuyền";
-                        txtInteractionPrompt.color = Color.gray;
+                        txtInteractionPrompt.color = new Color(0.72f, 0.75f, 0.71f);
                     }
                     else if (!speedOk)
                     {
                         txtInteractionPrompt.text = "Dừng thuyền lại để thả người";
-                        txtInteractionPrompt.color = Color.red;
+                        txtInteractionPrompt.color = new Color(0.82f, 0.58f, 0.45f);
                     }
                     else
                     {
                         txtInteractionPrompt.text = "Nhấn E để thả người";
-                        txtInteractionPrompt.color = Color.green;
+                        txtInteractionPrompt.color = new Color(0.94f, 0.91f, 0.82f);
                     }
                 }
             }
@@ -112,11 +109,22 @@ public class Round2BoatInteraction : MonoBehaviour
         }
         else
         {
-            if (txtInteractionPrompt != null && txtInteractionPrompt.gameObject.activeSelf)
-            {
-                txtInteractionPrompt.gameObject.SetActive(false);
-            }
+            SetPromptVisible(false);
         }
+    }
+
+    private void SetPromptVisible(bool visible)
+    {
+        if (txtInteractionPrompt == null) return;
+        var root = txtInteractionPrompt.transform.parent;
+        if (root != null && root.name == "PNL_R2_InteractionPrompt")
+        {
+            if (!txtInteractionPrompt.gameObject.activeSelf)
+                txtInteractionPrompt.gameObject.SetActive(true);
+            root.gameObject.SetActive(visible);
+        }
+        else
+            txtInteractionPrompt.gameObject.SetActive(visible);
     }
 
     private void TryInteract(bool speedOk)
