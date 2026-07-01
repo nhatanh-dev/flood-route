@@ -150,7 +150,6 @@ namespace Round1
                 if (enableLegacyRouteSelection)
                 {
                     HandleNumberInput();
-                    UpdateOrientationPlayer();
                 }
                 else if (orientationMapView != null)
                 {
@@ -550,26 +549,15 @@ namespace Round1
         }
 
         private GameObject orientationMarkersRoot;
-        private Transform playerMarker;
+        
 
         
         private void BuildOrientationMarkers()
         {
             if (orientationMarkersRoot != null) Destroy(orientationMarkersRoot);
             orientationMarkersRoot = new GameObject("R1_OrientationMarkers");
+            markerUpdaters.Clear();
 
-            // Player Marker
-            var pMarkerGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            pMarkerGo.name = "PlayerMarker";
-            pMarkerGo.transform.SetParent(orientationMarkersRoot.transform);
-            pMarkerGo.transform.localScale = new Vector3(2f, 1f, 6f);
-            Destroy(pMarkerGo.GetComponent<Collider>());
-            var pRend = pMarkerGo.GetComponent<Renderer>();
-            pRend.material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
-            pRend.material.color = Color.yellow;
-            playerMarker = pMarkerGo.transform;
-
-            // Find all Rescue Zones and Shelter
             var realtime = FindAnyObjectByType<R1RealtimeRoundController>();
             
             // Build Rescue A
@@ -594,35 +582,24 @@ namespace Round1
         {
             var go = new GameObject("Marker_" + name);
             go.transform.SetParent(orientationMarkersRoot.transform);
-            go.transform.position = pos + Vector3.up * 5f;
+            go.transform.position = pos + Vector3.up * 25f; // Lifted up so it renders clearly above everything
+            go.transform.rotation = Quaternion.Euler(90f, 0f, 0f); // Flat on the map
             
-            var bg = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            bg.transform.SetParent(go.transform);
-            bg.transform.localPosition = Vector3.zero;
-            bg.transform.localScale = Vector3.one * 4f;
-            Destroy(bg.GetComponent<Collider>());
-            var rend = bg.GetComponent<Renderer>();
-            rend.material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
-
-            var labelGo = new GameObject("Text");
-            labelGo.transform.SetParent(go.transform);
-            labelGo.transform.localPosition = Vector3.up * 4f;
-            var tmp = labelGo.AddComponent<TMPro.TextMeshPro>();
-            tmp.fontSize = 20f;
+            var tmp = go.AddComponent<TMPro.TextMeshPro>();
             tmp.alignment = TMPro.TextAlignmentOptions.Center;
+            tmp.lineSpacing = -30f;
+            tmp.isTextObjectScaleStatic = true;
 
             markerUpdaters.Add(() => {
                 string text = getText();
-                tmp.text = text;
                 if (text == "Cần cứu") {
-                    rend.material.color = new Color(1f, 0.5f, 0f);
-                    tmp.color = new Color(1f, 0.5f, 0f);
+                    go.SetActive(true);
+                    tmp.text = "<size=400%><color=#FF8800>●</color></size>\n<size=150%><color=#FFFFFF>Cần cứu</color></size>";
                 } else if (text == "Đã cứu") {
-                    rend.material.color = new Color(0.4f, 0.4f, 0.4f);
-                    tmp.color = new Color(0.4f, 0.4f, 0.4f);
+                    go.SetActive(false); // Hide completely
                 } else if (text == "Điểm trú") {
-                    rend.material.color = new Color(0.2f, 1f, 0.4f);
-                    tmp.color = new Color(0.2f, 1f, 0.4f);
+                    go.SetActive(true);
+                    tmp.text = "<size=400%><color=#44FF88>♦</color></size>\n<size=150%><color=#FFFFFF>Điểm trú</color></size>";
                 }
             });
         }
@@ -631,15 +608,6 @@ namespace Round1
         {
             if (orientationMarkersRoot != null) orientationMarkersRoot.SetActive(true);
             foreach (var update in markerUpdaters) update();
-        }
-
-        private void UpdateOrientationPlayer()
-        {
-            if (playerMarker != null && fpBoatController != null)
-            {
-                playerMarker.position = fpBoatController.transform.position + Vector3.up * 10f;
-                playerMarker.rotation = Quaternion.Euler(90, fpBoatController.transform.eulerAngles.y, 0);
-            }
         }
 
 
@@ -861,11 +829,9 @@ namespace Round1
                 legLayout.padding = new RectOffset(20,20,20,20);
                 legLayout.spacing = 20;
                 
-                CreateTMPInLayout(leftPanel.transform, "L_Title", "CHÚ THÍCH", 24, TextAlignmentOptions.Center, Color.white);
-                CreateTMPInLayout(leftPanel.transform, "L_1", "<color=yellow>■</color> Vị trí thuyền", 20, TextAlignmentOptions.Left, Color.white);
-                CreateTMPInLayout(leftPanel.transform, "L_2", "<color=#FF8800>●</color> Nhà cần cứu", 20, TextAlignmentOptions.Left, Color.white);
-                CreateTMPInLayout(leftPanel.transform, "L_3", "<color=#33FF66>●</color> Điểm trú", 20, TextAlignmentOptions.Left, Color.white);
-                CreateTMPInLayout(leftPanel.transform, "L_4", "<color=#666666>●</color> Đã cứu", 20, TextAlignmentOptions.Left, Color.white);
+                CreateTMPInLayout(leftPanel.transform, "L_Title", "CHÚ THÍCH", 22, TextAlignmentOptions.Center, Color.white);
+                CreateTMPInLayout(leftPanel.transform, "L_2", "<color=#FF8800>●</color> Cần cứu", 18, TextAlignmentOptions.Left, Color.white);
+                CreateTMPInLayout(leftPanel.transform, "L_3", "<color=#44FF88>♦</color> Điểm trú", 18, TextAlignmentOptions.Left, Color.white);
 
                 // Right panel
                 rightPanel.SetActive(false);

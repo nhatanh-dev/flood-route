@@ -164,10 +164,8 @@ namespace Round1
             layout.childForceExpandHeight = false;
 
             CreateTMPInLayout(legend.transform, "LegendTitle", "CHÚ THÍCH", 16f, TextAlignmentOptions.Left, Color.white);
-            CreateTMPInLayout(legend.transform, "LegendBoat", "<color=#FFD92E>▲</color> Thuyền", 14f, TextAlignmentOptions.Left, Color.white);
-            CreateTMPInLayout(legend.transform, "LegendRescue", "<color=#FF7A1F>●</color> Cần cứu", 14f, TextAlignmentOptions.Left, Color.white);
-            CreateTMPInLayout(legend.transform, "LegendShelter", "<color=#38E65F>◆</color> Điểm trú", 14f, TextAlignmentOptions.Left, Color.white);
-            CreateTMPInLayout(legend.transform, "LegendDone", "<color=#707371>●</color> Đã đón", 14f, TextAlignmentOptions.Left, Color.white);
+            CreateTMPInLayout(legend.transform, "LegendRescue", "<color=#FF8800>●</color> Cần cứu", 14f, TextAlignmentOptions.Left, Color.white);
+            CreateTMPInLayout(legend.transform, "LegendShelter", "<color=#44FF88>♦</color> Điểm trú", 14f, TextAlignmentOptions.Left, Color.white);
 
             GameObject footer = CreatePanel(panel.transform, "FooterBar", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-220f, 16f), new Vector2(220f, 48f), new Color(0.02f, 0.06f, 0.08f, 0.54f));
             CreateTMP(footer.transform, "FooterText", "Tab/Esc: Đóng bản đồ", 15f, TextAlignmentOptions.Center, new Color(0.86f, 0.95f, 1f), Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -297,64 +295,9 @@ namespace Round1
             return renderer;
         }
 
-        private static Mesh CreatePinMesh(float diameter)
-        {
-            float r = diameter * 0.42f;
-            float tail = diameter * 0.72f;
-            Mesh mesh = new Mesh();
-            mesh.vertices = new[]
-            {
-                new Vector3(-r, 0f, r * 0.45f),
-                new Vector3(0f, 0f, r),
-                new Vector3(r, 0f, r * 0.45f),
-                new Vector3(r * 0.75f, 0f, -r * 0.25f),
-                new Vector3(0f, 0f, -tail),
-                new Vector3(-r * 0.75f, 0f, -r * 0.25f),
-                new Vector3(0f, 0f, 0f),
-                new Vector3(-r * 0.44f, 0f, r * 0.35f),
-                new Vector3(0f, 0f, r * 0.58f),
-                new Vector3(r * 0.44f, 0f, r * 0.35f),
-                new Vector3(r * 0.36f, 0f, -r * 0.05f),
-                new Vector3(0f, 0f, -r * 0.36f),
-                new Vector3(-r * 0.36f, 0f, -r * 0.05f)
-            };
-            mesh.triangles = new[]
-            {
-                0, 1, 6,
-                1, 2, 6,
-                2, 3, 6,
-                3, 4, 6,
-                4, 5, 6,
-                5, 0, 6
-            };
-            mesh.RecalculateBounds();
-            mesh.RecalculateNormals();
-            return mesh;
-        }
+        
 
-        private static Mesh CreateDiamondMesh(float diameter)
-        {
-            float r = diameter * 0.5f;
-            Mesh mesh = new Mesh();
-            mesh.vertices = new[]
-            {
-                new Vector3(0f, 0f, r),
-                new Vector3(r, 0f, 0f),
-                new Vector3(0f, 0f, -r),
-                new Vector3(-r, 0f, 0f),
-                new Vector3(0f, 0f, 0f)
-            };
-            mesh.triangles = new[]
-            {
-                0, 1, 4,
-                1, 2, 4,
-                2, 3, 4,
-                3, 0, 4
-            };
-            mesh.RecalculateBounds();
-            mesh.RecalculateNormals();
-            return mesh;
-        }
+        
 
         private Vector3 GetMarkerPosition(Transform target)
         {
