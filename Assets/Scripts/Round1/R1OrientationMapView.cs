@@ -448,7 +448,7 @@ namespace Round1
             }
 
             return inside;
-        
+        }
 
         private Transform CreateWorldMarker(string name, bool shelter)
         {
