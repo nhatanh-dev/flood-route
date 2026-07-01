@@ -14,38 +14,35 @@ namespace Round1
         public R1RealtimeRoundController realtimeController;
 
         [Header("Marker Tuning")]
-        public float playerMarkerSize = 0.9f;
-        public float playerMarkerHeight = 2.9f;
-        public float objectiveMarkerHeight = 2.55f;
-        public float labelHeight = 0.62f;
-        public float rescueMarkerDiameter = 0.82f;
-        public float shelterMarkerDiameter = 0.98f;
+        public Vector2 rescueIconSize = new Vector2(48f, 58f);
+        public Vector2 shelterIconSize = new Vector2(54f, 58f);
+        public Vector2 labelOffset = new Vector2(0f, -38f);
+        public Vector3 worldOffset = new Vector3(0f, 1.4f, 0f);
         public float shelterPulseSpeed = 2.2f;
-        public float shelterCargoPulseScale = 0.12f;
+        public float shelterCargoPulseScale = 0.08f;
 
         private GameObject canvasRoot;
         private GameObject markerRoot;
-        private Transform playerMarker;
-        private Renderer markerNhaBaRenderer;
-        private Renderer markerNhaTuRenderer;
-        private Renderer shelterRenderer;
-        private Transform markerNhaBaTransform;
-        private Transform markerNhaTuTransform;
-        private Transform shelterTransform;
+        private RectTransform canvasRect;
+        private RectTransform markerLayerRect;
+        private RectTransform nhaBaMarker;
+        private RectTransform nhaTuMarker;
+        private RectTransform shelterMarker;
         private TMP_Text labelNhaBa;
         private TMP_Text labelNhaTu;
         private TMP_Text labelShelter;
-        private Material playerMaterial;
-        private Material rescueMaterial;
-        private Material rescuedMaterial;
-        private Material shelterMaterial;
-        private Material outlineMaterial;
+        private Transform nhaBaAnchor;
+        private Transform nhaTuAnchor;
+        private Transform shelterAnchor;
+        private Sprite rescueSprite;
+        private Sprite shelterSprite;
+        private Sprite shadowSprite;
         private bool isVisible;
 
-        private static readonly Color PlayerColor = new Color(1f, 0.86f, 0.18f, 1f);
-        private static readonly Color RescueColor = new Color(1f, 0.48f, 0.12f, 1f);
-        private static readonly Color RescuedColor = new Color(0.42f, 0.44f, 0.43f, 1f);
-        private static readonly Color ShelterColor = new Color(0.22f, 0.9f, 0.38f, 1f);
+        private static readonly Color RescueColor = new Color(0.95f, 0.36f, 0.10f, 1f);
+        private static readonly Color ShelterColor = new Color(0.20f, 0.72f, 0.36f, 1f);
+        private static readonly Color LabelColor = new Color(0.95f, 0.98f, 0.96f, 1f);
+        private static readonly Color PanelColor = new Color(0.02f, 0.06f, 0.08f, 0.50f);
 
         public GameObject CanvasRoot => canvasRoot;
         public GameObject MarkerRoot => markerRoot;
@@ -70,7 +67,7 @@ namespace Round1
                 realtimeController = FindAnyObjectByType<R1RealtimeRoundController>(FindObjectsInactive.Include);
             }
 
-            EnsureMaterials();
+            EnsureSprites();
             EnsureCanvas();
             EnsureMarkers();
             SetVisible(false);
@@ -103,33 +100,25 @@ namespace Round1
                 return;
             }
 
-            UpdatePlayerMarker();
             UpdateObjectiveMarkers();
         }
 
-        private void EnsureMaterials()
+        private void EnsureSprites()
         {
-            if (playerMaterial == null) playerMaterial = CreateUnlitMaterial("R1_Map_PlayerMarker_Mat", PlayerColor);
-            if (rescueMaterial == null) rescueMaterial = CreateUnlitMaterial("R1_Map_RescueMarker_Mat", RescueColor);
-            if (rescuedMaterial == null) rescuedMaterial = CreateUnlitMaterial("R1_Map_RescuedMarker_Mat", RescuedColor);
-            if (shelterMaterial == null) shelterMaterial = CreateUnlitMaterial("R1_Map_ShelterMarker_Mat", ShelterColor);
-            if (outlineMaterial == null) outlineMaterial = CreateUnlitMaterial("R1_Map_IconOutline_Mat", new Color(0.015f, 0.02f, 0.018f, 0.9f));
-        }
-
-        private static Material CreateUnlitMaterial(string name, Color color)
-        {
-            Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader == null)
+            if (rescueSprite == null)
             {
-                shader = Shader.Find("Sprites/Default");
+                rescueSprite = CreateRescuePinSprite("R1_Map_Rescue_Pin_Icon", RescueColor);
             }
 
-            Material mat = new Material(shader);
-            mat.name = name;
-            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
-            if (mat.HasProperty("_Color")) mat.SetColor("_Color", color);
-            if (mat.HasProperty("_Cull")) mat.SetFloat("_Cull", 0f);
-            return mat;
+            if (shelterSprite == null)
+            {
+                shelterSprite = CreateShelterSprite("R1_Map_Shelter_Icon", ShelterColor);
+            }
+
+            if (shadowSprite == null)
+            {
+                shadowSprite = CreateSoftDotSprite("R1_Map_Icon_Shadow");
+            }
         }
 
         private void EnsureCanvas()
@@ -152,11 +141,13 @@ namespace Round1
             GraphicRaycaster raycaster = canvasRoot.AddComponent<GraphicRaycaster>();
             raycaster.enabled = false;
 
-            GameObject panel = CreatePanel(canvasRoot.transform, "R1_PlanningUI_Group", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Color(0f, 0f, 0f, 0.08f));
-            CreatePanel(panel.transform, "TopBar", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -48f), Vector2.zero, new Color(0.02f, 0.06f, 0.08f, 0.52f));
+            canvasRect = canvasRoot.GetComponent<RectTransform>();
+
+            GameObject panel = CreatePanel(canvasRoot.transform, "R1_PlanningUI_Group", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Color(0f, 0f, 0f, 0.07f));
+            CreatePanel(panel.transform, "TopBar", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -48f), Vector2.zero, new Color(0.02f, 0.06f, 0.08f, 0.50f));
             CreateTMP(panel.transform, "TitleText", "BẢN ĐỒ CỨU HỘ", 24f, TextAlignmentOptions.Center, Color.white, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -48f), Vector2.zero);
 
-            GameObject legend = CreatePanel(panel.transform, "LegendPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(20f, -190f), new Vector2(225f, -62f), new Color(0.025f, 0.07f, 0.075f, 0.50f));
+            GameObject legend = CreatePanel(panel.transform, "LegendPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(20f, -154f), new Vector2(212f, -62f), PanelColor);
             VerticalLayoutGroup layout = legend.AddComponent<VerticalLayoutGroup>();
             layout.padding = new RectOffset(14, 12, 10, 10);
             layout.spacing = 3f;
@@ -164,68 +155,92 @@ namespace Round1
             layout.childForceExpandHeight = false;
 
             CreateTMPInLayout(legend.transform, "LegendTitle", "CHÚ THÍCH", 16f, TextAlignmentOptions.Left, Color.white);
-            CreateTMPInLayout(legend.transform, "LegendRescue", "<color=#FF8800>●</color> Cần cứu", 14f, TextAlignmentOptions.Left, Color.white);
-            CreateTMPInLayout(legend.transform, "LegendShelter", "<color=#44FF88>♦</color> Điểm trú", 14f, TextAlignmentOptions.Left, Color.white);
+            CreateTMPInLayout(legend.transform, "LegendRescue", "<color=#F35C19>●</color> Cần cứu", 14f, TextAlignmentOptions.Left, Color.white);
+            CreateTMPInLayout(legend.transform, "LegendShelter", "<color=#33B85C>◆</color> Điểm trú", 14f, TextAlignmentOptions.Left, Color.white);
 
-            GameObject footer = CreatePanel(panel.transform, "FooterBar", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-220f, 16f), new Vector2(220f, 48f), new Color(0.02f, 0.06f, 0.08f, 0.54f));
+            GameObject footer = CreatePanel(panel.transform, "FooterBar", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-210f, 16f), new Vector2(210f, 46f), new Color(0.02f, 0.06f, 0.08f, 0.52f));
             CreateTMP(footer.transform, "FooterText", "Tab/Esc: Đóng bản đồ", 15f, TextAlignmentOptions.Center, new Color(0.86f, 0.95f, 1f), Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+            markerRoot = new GameObject("R1_MapObjectiveIcons");
+            markerRoot.transform.SetParent(canvasRoot.transform, false);
+            markerLayerRect = markerRoot.AddComponent<RectTransform>();
+            markerLayerRect.anchorMin = Vector2.zero;
+            markerLayerRect.anchorMax = Vector2.one;
+            markerLayerRect.offsetMin = Vector2.zero;
+            markerLayerRect.offsetMax = Vector2.zero;
+            markerLayerRect.SetAsLastSibling();
         }
 
         private void EnsureMarkers()
         {
-            if (markerRoot != null)
+            if (nhaBaMarker != null)
             {
                 return;
             }
 
-            markerRoot = new GameObject("R1_OrientationMarkers");
-            SetIgnoreRaycastRecursive(markerRoot);
+            nhaBaAnchor = FindAnchor("R1_NhaBa_RescueAnchor");
+            nhaTuAnchor = FindAnchor("R1_NhaTu_RescueAnchor");
+            shelterAnchor = FindAnchor("R1_R2Style_Shelter_BaiDinh");
 
-            playerMarker = CreatePlayerArrow("R1_MapMarker_PlayerBoat").transform;
-
-            Transform nhaBa = FindAnchor("R1_NhaBa_RescueAnchor");
-            Transform nhaTu = FindAnchor("R1_NhaTu_RescueAnchor");
-            Transform shelter = FindAnchor("R1_R2Style_Shelter_BaiDinh");
-
-            markerNhaBaRenderer = CreateObjectiveMarker("R1_MapMarker_NhaBa", GetMarkerPosition(nhaBa), rescueMaterial, false, out markerNhaBaTransform, out labelNhaBa);
-            markerNhaTuRenderer = CreateObjectiveMarker("R1_MapMarker_NhaTu", GetMarkerPosition(nhaTu), rescueMaterial, false, out markerNhaTuTransform, out labelNhaTu);
-            shelterRenderer = CreateObjectiveMarker("R1_MapMarker_Shelter", GetMarkerPosition(shelter), shelterMaterial, true, out shelterTransform, out labelShelter);
-
-            if (labelShelter != null)
-            {
-                labelShelter.text = "Điểm trú";
-                labelShelter.color = ShelterColor;
-            }
+            nhaBaMarker = CreateMapIcon("R1_MapMarker_NhaBa", rescueSprite, rescueIconSize, "Cần cứu", out labelNhaBa);
+            nhaTuMarker = CreateMapIcon("R1_MapMarker_NhaTu", rescueSprite, rescueIconSize, "Cần cứu", out labelNhaTu);
+            shelterMarker = CreateMapIcon("R1_MapMarker_Shelter", shelterSprite, shelterIconSize, "Điểm trú", out labelShelter);
+            labelShelter.color = LabelColor;
         }
 
-        private GameObject CreatePlayerArrow(string name)
+        private RectTransform CreateMapIcon(string name, Sprite iconSprite, Vector2 size, string labelText, out TMP_Text label)
         {
-            GameObject go = new GameObject(name);
-            go.transform.SetParent(markerRoot.transform, false);
-            MeshFilter filter = go.AddComponent<MeshFilter>();
-            MeshRenderer renderer = go.AddComponent<MeshRenderer>();
-            renderer.sharedMaterial = playerMaterial;
-            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            renderer.receiveShadows = false;
+            GameObject root = new GameObject(name);
+            root.transform.SetParent(markerRoot.transform, false);
+            RectTransform rect = root.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(120f, 92f);
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
 
-            Mesh mesh = new Mesh();
-            float size = playerMarkerSize;
-            mesh.vertices = new[]
-            {
-                new Vector3(0f, 0f, size),
-                new Vector3(-size * 0.45f, 0f, -size * 0.45f),
-                new Vector3(size * 0.45f, 0f, -size * 0.45f),
-                new Vector3(0f, 0f, size),
-                new Vector3(size * 0.45f, 0f, -size * 0.45f),
-                new Vector3(-size * 0.45f, 0f, -size * 0.45f)
-            };
-            mesh.triangles = new[] { 0, 1, 2, 3, 4, 5 };
-            mesh.RecalculateBounds();
-            mesh.RecalculateNormals();
-            filter.sharedMesh = mesh;
+            GameObject shadow = new GameObject("SoftShadow");
+            shadow.transform.SetParent(root.transform, false);
+            Image shadowImage = shadow.AddComponent<Image>();
+            shadowImage.sprite = shadowSprite;
+            shadowImage.color = new Color(0f, 0f, 0f, 0.34f);
+            shadowImage.raycastTarget = false;
+            RectTransform shadowRect = shadow.GetComponent<RectTransform>();
+            shadowRect.anchorMin = new Vector2(0.5f, 0.5f);
+            shadowRect.anchorMax = new Vector2(0.5f, 0.5f);
+            shadowRect.pivot = new Vector2(0.5f, 0.5f);
+            shadowRect.anchoredPosition = new Vector2(2f, -5f);
+            shadowRect.sizeDelta = size + new Vector2(18f, 16f);
 
-            SetIgnoreRaycastRecursive(go);
-            return go;
+            GameObject icon = new GameObject("Icon");
+            icon.transform.SetParent(root.transform, false);
+            Image iconImage = icon.AddComponent<Image>();
+            iconImage.sprite = iconSprite;
+            iconImage.raycastTarget = false;
+            RectTransform iconRect = icon.GetComponent<RectTransform>();
+            iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRect.pivot = new Vector2(0.5f, 0.5f);
+            iconRect.sizeDelta = size;
+
+            GameObject labelGo = new GameObject("Label");
+            labelGo.transform.SetParent(root.transform, false);
+            label = labelGo.AddComponent<TextMeshProUGUI>();
+            label.text = labelText;
+            label.fontSize = 13f;
+            label.fontStyle = FontStyles.Bold;
+            label.alignment = TextAlignmentOptions.Center;
+            label.color = LabelColor;
+            label.outlineWidth = 0.18f;
+            label.outlineColor = new Color(0.01f, 0.015f, 0.015f, 0.95f);
+            label.raycastTarget = false;
+            RectTransform labelRect = labelGo.GetComponent<RectTransform>();
+            labelRect.anchorMin = new Vector2(0.5f, 0.5f);
+            labelRect.anchorMax = new Vector2(0.5f, 0.5f);
+            labelRect.pivot = new Vector2(0.5f, 0.5f);
+            labelRect.anchoredPosition = labelOffset;
+            labelRect.sizeDelta = new Vector2(104f, 22f);
+
+            return rect;
         }
 
         private static Transform FindAnchor(string objectName)
@@ -248,77 +263,6 @@ namespace Round1
             return null;
         }
 
-        private Renderer CreateObjectiveMarker(string name, Vector3 position, Material material, bool shelter, out Transform markerTransform, out TMP_Text label)
-        {
-            GameObject root = new GameObject(name);
-            root.transform.SetParent(markerRoot.transform, false);
-            root.transform.position = position + Vector3.up * 25f; // high enough to not clip
-            root.transform.rotation = Quaternion.Euler(90f, 0f, 0f); // flat
-            markerTransform = root.transform;
-
-            GameObject labelGo = new GameObject("Label");
-            labelGo.transform.SetParent(root.transform, false);
-            labelGo.transform.localPosition = Vector3.zero;
-            labelGo.transform.localRotation = Quaternion.identity;
-            label = labelGo.AddComponent<TextMeshPro>();
-            label.alignment = TextAlignmentOptions.Center;
-            label.fontSize = 20f; // Adjusted font size for world space visibility
-            label.lineSpacing = -20f;
-            label.enableWordWrapping = false;
-            
-            if (shelter) {
-                label.text = "<size=400%><color=#44FF88>♦</color></size>\n<size=150%><color=#FFFFFF>Điểm trú</color></size>";
-            } else {
-                label.text = "<size=400%><color=#FF8800>●</color></size>\n<size=150%><color=#FFFFFF>Cần cứu</color></size>";
-            }
-            label.outlineWidth = 0.18f;
-            label.outlineColor = new Color(0.02f, 0.025f, 0.02f, 0.95f);
-            
-            SetIgnoreRaycastRecursive(root);
-            return null;
-        }
-
-        
-
-        
-
-        private Vector3 GetMarkerPosition(Transform target)
-        {
-            if (target == null)
-            {
-                return Vector3.zero;
-            }
-
-            Vector3 pos = target.position;
-            pos.y = 0f;
-            return pos;
-        }
-
-        private void UpdatePlayerMarker()
-        {
-            if (playerMarker == null || boatController == null)
-            {
-                return;
-            }
-
-            Vector3 pos = boatController.transform.position;
-            pos.y += playerMarkerHeight;
-            playerMarker.position = pos;
-
-            Vector3 forward = boatController.CurrentBoatForwardWorld;
-            forward.y = 0f;
-            if (forward.sqrMagnitude < 0.001f)
-            {
-                forward = boatController.transform.forward;
-                forward.y = 0f;
-            }
-
-            if (forward.sqrMagnitude > 0.001f)
-            {
-                playerMarker.rotation = Quaternion.LookRotation(forward.normalized, Vector3.up);
-            }
-        }
-
         private void UpdateObjectiveMarkers()
         {
             bool nhaBaCleared = rescueController != null
@@ -329,32 +273,42 @@ namespace Round1
                 ? rescueController.RemainingAtNhaTu <= 0
                 : realtimeController != null && realtimeController.rescuedB;
 
-            ApplyRescueState(markerNhaBaRenderer, labelNhaBa, nhaBaCleared);
-            ApplyRescueState(markerNhaTuRenderer, labelNhaTu, nhaTuCleared);
+            UpdateMarkerPosition(nhaBaMarker, nhaBaAnchor, !nhaBaCleared);
+            UpdateMarkerPosition(nhaTuMarker, nhaTuAnchor, !nhaTuCleared);
+            UpdateMarkerPosition(shelterMarker, shelterAnchor, true);
 
-            if (shelterTransform != null && rescueController != null && rescueController.Cargo > 0)
+            if (shelterMarker != null)
             {
-                float pulse = 1f + Mathf.Sin(Time.time * shelterPulseSpeed) * shelterCargoPulseScale;
-                shelterTransform.localScale = new Vector3(pulse, pulse, pulse);
-            }
-            else if (shelterTransform != null)
-            {
-                shelterTransform.localScale = Vector3.one;
+                bool hasCargo = rescueController != null && rescueController.Cargo > 0;
+                float pulse = hasCargo ? 1f + Mathf.Sin(Time.time * shelterPulseSpeed) * shelterCargoPulseScale : 1f;
+                shelterMarker.localScale = new Vector3(pulse, pulse, pulse);
             }
         }
 
-        private void ApplyRescueState(Renderer markerRenderer, TMP_Text label, bool cleared)
+        private void UpdateMarkerPosition(RectTransform marker, Transform anchor, bool visible)
         {
-            if (markerRenderer != null)
+            if (marker == null)
             {
-                markerRenderer.sharedMaterial = cleared ? rescuedMaterial : rescueMaterial;
+                return;
             }
 
-            if (label != null)
+            if (!visible || anchor == null || planningCamera == null || canvasRect == null)
             {
-                label.text = cleared ? "Đã đón" : "Cần cứu";
-                label.color = cleared ? RescuedColor : RescueColor;
+                marker.gameObject.SetActive(false);
+                return;
             }
+
+            Vector3 screenPoint = planningCamera.WorldToScreenPoint(anchor.position + worldOffset);
+            if (screenPoint.z < 0f)
+            {
+                marker.gameObject.SetActive(false);
+                return;
+            }
+
+            Vector2 localPoint;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenPoint, null, out localPoint);
+            marker.anchoredPosition = localPoint;
+            marker.gameObject.SetActive(true);
         }
 
         private static GameObject CreatePanel(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax, Color color)
@@ -406,16 +360,164 @@ namespace Round1
             return tmp;
         }
 
-        private static void SetIgnoreRaycastRecursive(GameObject go)
+        private static Sprite CreateRescuePinSprite(string name, Color fill)
         {
-            int layer = LayerMask.NameToLayer("Ignore Raycast");
-            if (layer < 0) layer = 2;
+            const int width = 96;
+            const int height = 112;
+            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            texture.name = name;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Bilinear;
 
-            Transform[] transforms = go.GetComponentsInChildren<Transform>(true);
-            for (int i = 0; i < transforms.Length; i++)
+            Color clear = new Color(0f, 0f, 0f, 0f);
+            for (int y = 0; y < height; y++)
             {
-                transforms[i].gameObject.layer = layer;
+                for (int x = 0; x < width; x++)
+                {
+                    float nx = (x + 0.5f - width * 0.5f) / width;
+                    float ny = (y + 0.5f - height * 0.56f) / height;
+
+                    bool outerCircle = Sqr(nx / 0.27f) + Sqr((ny - 0.10f) / 0.24f) <= 1f;
+                    bool outerTip = PointInTriangle(nx, ny, -0.15f, -0.02f, 0.15f, -0.02f, 0f, -0.36f);
+                    bool outer = outerCircle || outerTip;
+
+                    bool innerCircle = Sqr(nx / 0.21f) + Sqr((ny - 0.10f) / 0.19f) <= 1f;
+                    bool innerTip = PointInTriangle(nx, ny, -0.105f, -0.03f, 0.105f, -0.03f, 0f, -0.27f);
+                    bool inner = innerCircle || innerTip;
+
+                    Color pixel = clear;
+                    if (outer)
+                    {
+                        pixel = inner ? fill : Color.white;
+                    }
+
+                    texture.SetPixel(x, y, pixel);
+                }
             }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f);
+        }
+
+        private static Sprite CreateShelterSprite(string name, Color fill)
+        {
+            const int size = 96;
+            Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.name = name;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Bilinear;
+
+            Color clear = new Color(0f, 0f, 0f, 0f);
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float nx = (x + 0.5f - size * 0.5f) / size;
+                    float ny = (y + 0.5f - size * 0.5f) / size;
+
+                    bool outer = PointInPolygon(nx, ny, new[]
+                    {
+                        new Vector2(0f, 0.40f),
+                        new Vector2(0.34f, 0.13f),
+                        new Vector2(0.27f, -0.31f),
+                        new Vector2(0f, -0.43f),
+                        new Vector2(-0.27f, -0.31f),
+                        new Vector2(-0.34f, 0.13f)
+                    });
+
+                    bool inner = PointInPolygon(nx, ny, new[]
+                    {
+                        new Vector2(0f, 0.30f),
+                        new Vector2(0.25f, 0.09f),
+                        new Vector2(0.20f, -0.24f),
+                        new Vector2(0f, -0.33f),
+                        new Vector2(-0.20f, -0.24f),
+                        new Vector2(-0.25f, 0.09f)
+                    });
+
+                    bool houseRoof = PointInTriangle(nx, ny, -0.16f, 0.02f, 0.16f, 0.02f, 0f, 0.18f);
+                    bool houseBody = Mathf.Abs(nx) < 0.13f && ny > -0.17f && ny < 0.03f;
+                    bool houseCut = houseRoof || houseBody;
+
+                    Color pixel = clear;
+                    if (outer)
+                    {
+                        pixel = inner ? fill : Color.white;
+                        if (houseCut && inner)
+                        {
+                            pixel = new Color(0.94f, 0.98f, 0.94f, 1f);
+                        }
+                    }
+
+                    texture.SetPixel(x, y, pixel);
+                }
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
+        }
+
+        private static Sprite CreateSoftDotSprite(string name)
+        {
+            const int size = 64;
+            Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.name = name;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Bilinear;
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float nx = (x + 0.5f - size * 0.5f) / (size * 0.5f);
+                    float ny = (y + 0.5f - size * 0.5f) / (size * 0.5f);
+                    float d = Mathf.Sqrt(nx * nx + ny * ny);
+                    float alpha = Mathf.Clamp01(1f - d);
+                    alpha *= alpha * 0.75f;
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                }
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
+        }
+
+        private static float Sqr(float value)
+        {
+            return value * value;
+        }
+
+        private static bool PointInTriangle(float px, float py, float ax, float ay, float bx, float by, float cx, float cy)
+        {
+            float d1 = Sign(px, py, ax, ay, bx, by);
+            float d2 = Sign(px, py, bx, by, cx, cy);
+            float d3 = Sign(px, py, cx, cy, ax, ay);
+            bool hasNeg = d1 < 0f || d2 < 0f || d3 < 0f;
+            bool hasPos = d1 > 0f || d2 > 0f || d3 > 0f;
+            return !(hasNeg && hasPos);
+        }
+
+        private static float Sign(float px, float py, float ax, float ay, float bx, float by)
+        {
+            return (px - bx) * (ay - by) - (ax - bx) * (py - by);
+        }
+
+        private static bool PointInPolygon(float x, float y, Vector2[] polygon)
+        {
+            bool inside = false;
+            int j = polygon.Length - 1;
+            for (int i = 0; i < polygon.Length; i++)
+            {
+                bool intersect = ((polygon[i].y > y) != (polygon[j].y > y)) &&
+                    (x < (polygon[j].x - polygon[i].x) * (y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x);
+                if (intersect)
+                {
+                    inside = !inside;
+                }
+                j = i;
+            }
+
+            return inside;
         }
     }
 }
