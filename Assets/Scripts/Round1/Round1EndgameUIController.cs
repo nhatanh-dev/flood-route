@@ -22,6 +22,7 @@ namespace Round1
 
         [Header("Button")]
         public Button btnRetry;
+        public Button btnContinueRound2;
         public TMP_Text txtRetryHint;
 
         private void Awake()
@@ -33,6 +34,12 @@ namespace Round1
             {
                 btnRetry.onClick.RemoveAllListeners();
                 btnRetry.onClick.AddListener(RetryCurrentScene);
+            }
+            if (btnContinueRound2 != null)
+            {
+                btnContinueRound2.onClick.RemoveAllListeners();
+                btnContinueRound2.onClick.AddListener(() => SceneManager.LoadScene("Round2_MissionBriefing"));
+                btnContinueRound2.gameObject.SetActive(false);
             }
         }
 
@@ -95,6 +102,10 @@ namespace Round1
             {
                 var btnText = btnRetry.GetComponentInChildren<TMPro.TextMeshProUGUI>();
                 if (btnText != null) btnText.text = "Chơi lại";
+            }
+            if (btnContinueRound2 != null)
+            {
+                btnContinueRound2.gameObject.SetActive(true);
             }
         }
 
