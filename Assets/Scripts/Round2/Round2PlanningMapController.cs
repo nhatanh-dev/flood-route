@@ -44,6 +44,7 @@ public sealed class Round2PlanningMapController : MonoBehaviour
     private Transform markerCocTieu;
     private Transform markerNhaSong;
     private Transform markerDiemTru;
+    private Transform markerPlayer;
     // removed player marker
     // removed player icon
     private TMP_Text labelPlayer;
@@ -256,6 +257,7 @@ public sealed class Round2PlanningMapController : MonoBehaviour
         layout.childForceExpandHeight = false;
 
         CreateTMPInLayout(legend.transform, "LegendTitle", "CHÚ THÍCH", 16f, TextAlignmentOptions.Left, Color.white);
+        CreateTMPInLayout(legend.transform, "LegendBoat", "<color=#00FFFF>▲</color> Thuyền", 14f, TextAlignmentOptions.Left, Color.white);
         CreateTMPInLayout(legend.transform, "LegendRescue", "<color=#FF8800>●</color> Cần cứu", 14f, TextAlignmentOptions.Left, Color.white);
         CreateTMPInLayout(legend.transform, "LegendShelter", "<color=#44FF88>♦</color> Điểm trú", 14f, TextAlignmentOptions.Left, Color.white);
 
@@ -279,6 +281,11 @@ public sealed class Round2PlanningMapController : MonoBehaviour
         markerCocTieu = CreateWorldMarker("R2_MapMarker_CocTieu", cocTieuT != null ? cocTieuT.position : Vector3.zero, false);
         markerNhaSong = CreateWorldMarker("R2_MapMarker_NhaSong", nhaSongT != null ? nhaSongT.position : Vector3.zero, false);
         markerDiemTru = CreateWorldMarker("R2_MapMarker_DiemTru", diemTruT != null ? diemTruT.position : Vector3.zero, true);
+        
+        if (boatController != null)
+        {
+            markerPlayer = CreatePlayerWorldMarker("R2_MapMarker_PlayerBoat");
+        }
     }
 
     private void CreateMapIcon_Unused() {}
@@ -347,6 +354,13 @@ public sealed class Round2PlanningMapController : MonoBehaviour
             bool hasCargo = roundController != null && roundController.currentCargo > 0;
             float pulse = hasCargo ? 1f + Mathf.Sin(Time.time * shelterPulseSpeed) * shelterCargoPulseScale : 1f;
             markerDiemTru.localScale = new Vector3(pulse, pulse, pulse);
+        }
+        if (markerPlayer != null && boatController != null)
+        {
+            markerPlayer.gameObject.SetActive(true);
+            markerPlayer.position = boatController.transform.position + Vector3.up * 25f;
+            float heading = boatController.transform.eulerAngles.y;
+            markerPlayer.rotation = Quaternion.Euler(0f, heading + 180f, 0f) * Quaternion.Euler(90f, 0f, 0f);
         }
     }
 
@@ -740,15 +754,39 @@ public sealed class Round2PlanningMapController : MonoBehaviour
         labelGo.transform.localRotation = Quaternion.identity;
         var label = labelGo.AddComponent<TextMeshPro>();
         label.alignment = TextAlignmentOptions.Center;
-        label.fontSize = 20f;
-        label.lineSpacing = -20f;
+        label.fontSize = 7f; // significantly reduced size
+        label.lineSpacing = -8f;
         label.enableWordWrapping = false;
         
         if (shelter) {
-            label.text = "<size=400%><color=#44FF88>♦</color></size>\n<size=150%><color=#FFFFFF>Điểm trú</color></size>";
+            label.text = "<size=350%><color=#44FF88>♦</color></size>\n<size=120%><color=#FFFFFF>Điểm trú</color></size>";
         } else {
-            label.text = "<size=400%><color=#FF8800>●</color></size>\n<size=150%><color=#FFFFFF>Cần cứu</color></size>";
+            label.text = "<size=350%><color=#FF8800>●</color></size>\n<size=120%><color=#FFFFFF>Cần cứu</color></size>";
         }
+        label.outlineWidth = 0.18f;
+        label.outlineColor = new Color(0.02f, 0.025f, 0.02f, 0.95f);
+        
+        return root.transform;
+    }
+
+
+    private Transform CreatePlayerWorldMarker(string name)
+    {
+        GameObject root = new GameObject(name);
+        root.transform.SetParent(markerRoot.transform, false);
+        root.transform.position = Vector3.up * 25f;
+        root.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+        GameObject labelGo = new GameObject("Label");
+        labelGo.transform.SetParent(root.transform, false);
+        labelGo.transform.localPosition = Vector3.zero;
+        labelGo.transform.localRotation = Quaternion.identity;
+        var label = labelGo.AddComponent<TextMeshPro>();
+        label.alignment = TextAlignmentOptions.Center;
+        label.fontSize = 7f;
+        label.lineSpacing = -8f;
+        label.enableWordWrapping = false;
+        label.text = "<size=300%><color=#00FFFF>▲</color></size>\n<size=90%><color=#FFFFFF>Thuyền</color></size>";
         label.outlineWidth = 0.18f;
         label.outlineColor = new Color(0.02f, 0.025f, 0.02f, 0.95f);
         
