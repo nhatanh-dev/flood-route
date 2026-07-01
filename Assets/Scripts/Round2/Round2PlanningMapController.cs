@@ -257,9 +257,9 @@ public sealed class Round2PlanningMapController : MonoBehaviour
         layout.childForceExpandHeight = false;
 
         CreateTMPInLayout(legend.transform, "LegendTitle", "CHÚ THÍCH", 16f, TextAlignmentOptions.Left, Color.white);
-        CreateTMPInLayout(legend.transform, "LegendBoat", "<color=#00FFFF>▲</color> Thuyền", 14f, TextAlignmentOptions.Left, Color.white);
-        CreateTMPInLayout(legend.transform, "LegendRescue", "<color=#FF8800>●</color> Cần cứu", 14f, TextAlignmentOptions.Left, Color.white);
-        CreateTMPInLayout(legend.transform, "LegendShelter", "<color=#44FF88>♦</color> Điểm trú", 14f, TextAlignmentOptions.Left, Color.white);
+        CreateTMPInLayout(legend.transform, "LegendBoat", "<color=#6FAFB2>▲</color> Thuyền", 14f, TextAlignmentOptions.Left, Color.white);
+        CreateTMPInLayout(legend.transform, "LegendRescue", "<color=#C97A24>●</color> Cần cứu", 14f, TextAlignmentOptions.Left, Color.white);
+        CreateTMPInLayout(legend.transform, "LegendShelter", "<color=#6BAE74>♦</color> Điểm trú", 14f, TextAlignmentOptions.Left, Color.white);
 
         GameObject footer = CreatePanel(panel.transform, "FooterBar", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-210f, 16f), new Vector2(210f, 46f), new Color(0.02f, 0.06f, 0.08f, 0.42f));
         CreateTMP(footer.transform, "FooterText", "Tab/Esc: Đóng bản đồ", 15f, TextAlignmentOptions.Center, new Color(0.86f, 0.95f, 1f), Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -346,8 +346,17 @@ public sealed class Round2PlanningMapController : MonoBehaviour
 
     private void RefreshMarkers()
     {
-        if (markerCocTieu != null) markerCocTieu.gameObject.SetActive(rescueCocTieu != null && rescueCocTieu.civiliansAvailable > 0);
-        if (markerNhaSong != null) markerNhaSong.gameObject.SetActive(rescueNhaSong != null && rescueNhaSong.civiliansAvailable > 0);
+        float rescuePulse = 1f + (Mathf.Sin(Time.time * 4f) * 0.5f + 0.5f) * 0.08f;
+        if (markerCocTieu != null) {
+            bool active = rescueCocTieu != null && rescueCocTieu.civiliansAvailable > 0;
+            markerCocTieu.gameObject.SetActive(active);
+            if (active) markerCocTieu.localScale = new Vector3(rescuePulse, rescuePulse, rescuePulse);
+        }
+        if (markerNhaSong != null) {
+            bool active = rescueNhaSong != null && rescueNhaSong.civiliansAvailable > 0;
+            markerNhaSong.gameObject.SetActive(active);
+            if (active) markerNhaSong.localScale = new Vector3(rescuePulse, rescuePulse, rescuePulse);
+        }
         if (markerDiemTru != null) 
         {
             markerDiemTru.gameObject.SetActive(true);
@@ -754,17 +763,18 @@ public sealed class Round2PlanningMapController : MonoBehaviour
         labelGo.transform.localRotation = Quaternion.identity;
         var label = labelGo.AddComponent<TextMeshPro>();
         label.alignment = TextAlignmentOptions.Center;
-        label.fontSize = 7f; // significantly reduced size
-        label.lineSpacing = -8f;
+        label.fontSize = 5f; // very compact size
+        label.lineSpacing = -6f;
         label.enableWordWrapping = false;
         
+        // Muted colors, dark shadow/outline via outline settings
         if (shelter) {
-            label.text = "<size=350%><color=#44FF88>♦</color></size>\n<size=120%><color=#FFFFFF>Điểm trú</color></size>";
+            label.text = "<size=300%><color=#6BAE74>♦</color></size>\n<size=100%><color=#E0E0E0>Điểm trú</color></size>";
         } else {
-            label.text = "<size=350%><color=#FF8800>●</color></size>\n<size=120%><color=#FFFFFF>Cần cứu</color></size>";
+            label.text = "<size=300%><color=#C97A24>●</color></size>\n<size=100%><color=#E0E0E0>Cần cứu</color></size>";
         }
-        label.outlineWidth = 0.18f;
-        label.outlineColor = new Color(0.02f, 0.025f, 0.02f, 0.95f);
+        label.outlineWidth = 0.25f;
+        label.outlineColor = new Color(0.02f, 0.02f, 0.02f, 0.90f);
         
         return root.transform;
     }
@@ -783,12 +793,12 @@ public sealed class Round2PlanningMapController : MonoBehaviour
         labelGo.transform.localRotation = Quaternion.identity;
         var label = labelGo.AddComponent<TextMeshPro>();
         label.alignment = TextAlignmentOptions.Center;
-        label.fontSize = 7f;
-        label.lineSpacing = -8f;
+        label.fontSize = 5f;
+        label.lineSpacing = -6f;
         label.enableWordWrapping = false;
-        label.text = "<size=300%><color=#00FFFF>▲</color></size>\n<size=90%><color=#FFFFFF>Thuyền</color></size>";
-        label.outlineWidth = 0.18f;
-        label.outlineColor = new Color(0.02f, 0.025f, 0.02f, 0.95f);
+        label.text = "<size=300%><color=#6FAFB2>▲</color></size>\n<size=100%><color=#E0E0E0>Thuyền</color></size>";
+        label.outlineWidth = 0.25f;
+        label.outlineColor = new Color(0.02f, 0.02f, 0.02f, 0.90f);
         
         return root.transform;
     }
