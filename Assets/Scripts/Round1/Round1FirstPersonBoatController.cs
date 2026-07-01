@@ -61,6 +61,7 @@ namespace Round1
         private BoxCollider internalCollider;
 
         public float currentSpeed;
+        public Vector3 CurrentBoatForwardWorld => GetBoatForwardDirection();
         private float pitch;
         private float cameraYaw;
 
@@ -515,9 +516,13 @@ namespace Round1
                               colName.Contains("Trigger") || parentName.Contains("Trigger");
 
             var warningUI = GetComponent<Round1BoundaryWarningUI>();
-            if (warningUI != null)
+            if (isBoundary)
             {
-                warningUI.TriggerCollisionWarning(isBoundary, hitPoint, normal);
+                if (warningUI != null)
+                {
+                    warningUI.TriggerBoundaryWarning(hitPoint, normal);
+                }
+                return;
             }
 
             if (!isBoundary)
@@ -525,11 +530,23 @@ namespace Round1
                 var realtime = FindAnyObjectByType<R1RealtimeRoundController>();
                 if (realtime != null && realtime.enableCollisionDamage)
                 {
-                    if (Mathf.Abs(currentSpeed) >= realtime.minDamageSpeed)
+                    bool fastEnough = Mathf.Abs(currentSpeed) >= realtime.minDamageSpeed;
+                    bool cooldownReady = Time.time - realtime.LastDamageTime >= realtime.damageCooldown;
+                    bool causesDamage = fastEnough && cooldownReady;
+
+                    if (causesDamage)
                     {
                         realtime.ApplyBoatDamage(realtime.collisionDamage, colName);
+                        if (warningUI != null)
+                        {
+                            warningUI.TriggerDamageWarning(realtime.currentBoatDurability <= 0);
+                        }
                         // Optional: Reduce speed slightly on hard hit
                         currentSpeed *= 0.3f; 
+                    }
+                    else if (warningUI != null)
+                    {
+                        warningUI.TriggerLightContactWarning();
                     }
                 }
             }

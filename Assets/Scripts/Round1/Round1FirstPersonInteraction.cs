@@ -3,7 +3,6 @@ using System.Reflection;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 namespace Round1
 {
@@ -32,12 +31,6 @@ namespace Round1
         private TMP_Text txtObjective;  // TXT_R1_Shared_Objective
         private TMP_Text txtMessage;    // TXT_R1_Shared_Message (bottom bar)
         private TMP_Text txtDurability; // TXT_R1_Shared_Durability
-        private TMP_Text txtRemaining;
-        private TMP_Text txtInteractionPrompt;
-        private TMP_Text txtContextToast;
-        private CanvasGroup contextToastGroup;
-        private Image contextToastAccent;
-        private Coroutine feedbackRoutine;
 
         // ── node trigger transforms ───────────────────────────────────────────
         private Transform tNhaBa;
@@ -80,19 +73,6 @@ namespace Round1
             txtSaved     = FindTMP("TXT_R1_Shared_Saved");
             txtObjective = FindTMP("TXT_R1_Shared_Objective");
             txtMessage   = FindTMP("TXT_R1_Shared_Message");
-            txtRemaining = FindTMP("TXT_R1_Shared_Remaining");
-            txtInteractionPrompt = FindTMP("TXT_R1_InteractionPrompt");
-            txtContextToast = FindTMP("TXT_R1_ContextToast");
-
-            if (txtInteractionPrompt != null)
-                txtInteractionPrompt.transform.parent.gameObject.SetActive(false);
-
-            if (txtContextToast != null)
-            {
-                contextToastGroup = txtContextToast.GetComponentInParent<CanvasGroup>();
-                contextToastAccent = FindImage("IMG_R1_ToastAccent");
-                txtContextToast.transform.parent.gameObject.SetActive(false);
-            }
 
             // Setup Durability text
             txtDurability = FindTMP("TXT_R1_Shared_Durability");
@@ -105,8 +85,8 @@ namespace Round1
             }
 
             // Badge roots
-            nhaBaBadgeRoot = GameObject.Find("R1_RescueBadge_NhaBa_2Nguoi");
-            nhaTuBadgeRoot = GameObject.Find("R1_RescueBadge_NhaTu_1Nguoi");
+            nhaBaBadgeRoot = GameObject.Find("R1_RescueBadge_NhaBa_1Nguoi");
+            nhaTuBadgeRoot = GameObject.Find("R1_RescueBadge_NhaTu_2Nguoi");
             nhaBaPeopleRoot = GameObject.Find("R1_RescuePeople_NhaBa_2");
             nhaTuPeopleRoot = GameObject.Find("R1_NhaTu_RescueAnchor");
 
@@ -117,7 +97,7 @@ namespace Round1
                 nhaTuBadgeText = FindBadgeCountText(nhaTuBadgeRoot);
 
             // Set bottom instruction bar
-            SetMsg("<b>WASD</b>  Lái thuyền     <b>E</b>  Cứu / Thả     <b>TAB</b>  Bản đồ     <b>Q</b>  Chờ");
+            SetMsg("WASD: Lái thuyền | E: Cứu/Thả người | Tab: Bản đồ");
 
             // Turn counter is now used in FP mode
             // if (txtTurn != null) txtTurn.text = "Lượt: —";
@@ -169,16 +149,16 @@ namespace Round1
 
             if (insideRescueZoneA)
             {
-                if (realtimeController != null && !realtimeController.rescuedA && objText.Contains("Nhà cần cứu 1"))
+                if (realtimeController != null && !realtimeController.rescuedA)
                 {
                     if (boatSpeed <= maxInteractSpeed)
                     {
-                        prompt = "Nhấn E để cứu 2 người.";
+                        prompt = "Nhấn E để cứu người.";
                         if (ePressed)
                         {
-                            if (realtimeController.TryRescueA(2))
+                            if (realtimeController.TryRescueA(1))
                             {
-                                ShowFeedback("Đã cứu 2 người lên thuyền.");
+                                ShowFeedback("Đã cứu 1 người dân.");
                                 if (nhaBaBadgeRoot != null) nhaBaBadgeRoot.SetActive(false);
                                 if (nhaBaPeopleRoot != null) nhaBaPeopleRoot.SetActive(false);
                                 prompt = ""; // cleared
@@ -187,22 +167,22 @@ namespace Round1
                     }
                     else
                     {
-                        prompt = "Dừng thuyền để cứu người an toàn.";
+                        prompt = "Dừng thuyền lại để cứu người.";
                     }
                 }
             }
             else if (insideRescueZoneB)
             {
-                if (realtimeController != null && !realtimeController.rescuedB && objText.Contains("Nhà cần cứu 2"))
+                if (realtimeController != null && !realtimeController.rescuedB)
                 {
                     if (boatSpeed <= maxInteractSpeed)
                     {
-                        prompt = "Nhấn E để cứu 1 người.";
+                        prompt = "Nhấn E để cứu người.";
                         if (ePressed)
                         {
-                            if (realtimeController.TryRescueB(1))
+                            if (realtimeController.TryRescueB(2))
                             {
-                                ShowFeedback("Đã cứu thêm 1 người.");
+                                ShowFeedback("Đã cứu 2 người dân.");
                                 if (nhaTuBadgeRoot != null) nhaTuBadgeRoot.SetActive(false);
                                 if (nhaTuPeopleRoot != null) nhaTuPeopleRoot.SetActive(false);
                                 prompt = ""; // cleared
@@ -211,7 +191,7 @@ namespace Round1
                     }
                     else
                     {
-                        prompt = "Dừng thuyền để cứu người an toàn.";
+                        prompt = "Dừng thuyền lại để cứu người.";
                     }
                 }
             }
@@ -227,19 +207,20 @@ namespace Round1
                     {
                         if (boatSpeed <= maxInteractSpeed)
                         {
-                            prompt = "Nhấn E để đưa người dân vào điểm trú.";
+                            prompt = "Nhấn E để thả người.";
                             if (ePressed)
                             {
+                                int droppedOff = cargo;
                                 if (realtimeController.TryDropOff())
                                 {
-                                    ShowFeedback("Đã đưa 3 người dân vào điểm trú an toàn.");
+                                    ShowFeedback($"Đã đưa {droppedOff} người dân đến nơi an toàn.");
                                     prompt = "";
                                 }
                             }
                         }
                         else
                         {
-                            prompt = "Dừng thuyền để cập bến an toàn.";
+                            prompt = "Dừng thuyền lại để thả người.";
                         }
                     }
                 }
@@ -259,8 +240,7 @@ namespace Round1
             RefreshHUD();
 
             // ── update objective text every frame ─────────────────────────────
-            SetObjective();
-            SetInteractionPrompt(prompt);
+            SetObjective(prompt);
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -348,22 +328,19 @@ namespace Round1
                 {
                     int mins = Mathf.FloorToInt(realtimeController.currentTimeRemaining / 60F);
                     int secs = Mathf.FloorToInt(realtimeController.currentTimeRemaining - mins * 60);
-                    txtTurn.text = string.Format("{0:00}:{1:00}", mins, secs);
+                    txtTurn.text = string.Format("Thời gian: {0:00}:{1:00}", mins, secs);
                 }
 
                 if (txtDurability != null)
                 {
-                    txtDurability.text = $"{realtimeController.currentBoatDurability}/{realtimeController.maxBoatDurability}";
+                    txtDurability.text = $"Độ bền: {realtimeController.currentBoatDurability}/{realtimeController.maxBoatDurability}";
                 }
 
                 if (txtCargo != null)
-                    txtCargo.text = $"{realtimeController.currentCargo}/{realtimeController.boatCapacity}";
+                    txtCargo.text = $"Trên thuyền: {realtimeController.currentCargo}/{realtimeController.boatCapacity}";
                 
                 if (txtSaved != null)
-                    txtSaved.text = $"{realtimeController.civiliansSafe}/{realtimeController.totalCivilians}";
-
-                if (txtRemaining != null)
-                    txtRemaining.text = Mathf.Max(0, realtimeController.totalCivilians - realtimeController.civiliansSafe).ToString();
+                    txtSaved.text = $"An toàn: {realtimeController.civiliansSafe}/{realtimeController.totalCivilians}";
             }
         }
 
@@ -371,26 +348,22 @@ namespace Round1
         {
             if (txtTurn != null && txtTurn.transform.parent != null) txtTurn.transform.parent.gameObject.SetActive(false);
             if (txtMessage != null && txtMessage.transform.parent != null) txtMessage.transform.parent.gameObject.SetActive(false);
-            if (txtInteractionPrompt != null && txtInteractionPrompt.transform.parent != null) txtInteractionPrompt.transform.parent.gameObject.SetActive(false);
-            if (txtContextToast != null && txtContextToast.transform.parent != null) txtContextToast.transform.parent.gameObject.SetActive(false);
         }
 
-        private void SetObjective()
+        private void SetObjective(string interactPrompt)
         {
             if (txtObjective == null) return;
 
+            if (!string.IsNullOrEmpty(interactPrompt))
+            {
+                txtObjective.text = interactPrompt;
+                return;
+            }
+
             if (realtimeController != null)
+            {
                 txtObjective.text = realtimeController.currentObjectiveText;
-        }
-
-        private void SetInteractionPrompt(string prompt)
-        {
-            if (txtInteractionPrompt == null) return;
-
-            bool visible = !string.IsNullOrEmpty(prompt);
-            var root = txtInteractionPrompt.transform.parent.gameObject;
-            if (root.activeSelf != visible) root.SetActive(visible);
-            if (visible) txtInteractionPrompt.text = prompt;
+            }
         }
 
         private void SetMsg(string msg)
@@ -421,58 +394,11 @@ namespace Round1
         // ─────────────────────────────────────────────────────────────────────
         public void ShowFeedback(string msg)
         {
-            if (txtContextToast != null && contextToastGroup != null)
-            {
-                if (feedbackRoutine != null) StopCoroutine(feedbackRoutine);
-                feedbackRoutine = StartCoroutine(ShowToast(msg, 3f));
-                return;
-            }
-
             if (refs != null && refs.feedbackText != null)
             {
                 refs.feedbackText.text = msg;
                 StartCoroutine(ClearFeedback(refs.feedbackText));
             }
-        }
-
-        private IEnumerator ShowToast(string message, float holdDuration)
-        {
-            var root = txtContextToast.transform.parent.gameObject;
-            root.SetActive(true);
-            txtContextToast.text = message;
-
-            bool critical = message.Contains("hỏng") || message.Contains("Va chạm") ||
-                            message.Contains("Dừng") || message.Contains("đầy");
-            if (contextToastAccent != null)
-                contextToastAccent.color = critical
-                    ? new Color(0.52f, 0.28f, 0.20f, 1f)
-                    : new Color(0.67f, 0.52f, 0.24f, 1f);
-
-            contextToastGroup.alpha = 0f;
-            const float fadeIn = 0.16f;
-            const float fadeOut = 0.28f;
-            float elapsed = 0f;
-            while (elapsed < fadeIn)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                contextToastGroup.alpha = Mathf.Clamp01(elapsed / fadeIn);
-                yield return null;
-            }
-
-            contextToastGroup.alpha = 1f;
-            yield return new WaitForSecondsRealtime(holdDuration);
-
-            elapsed = 0f;
-            while (elapsed < fadeOut)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                contextToastGroup.alpha = 1f - Mathf.Clamp01(elapsed / fadeOut);
-                yield return null;
-            }
-
-            contextToastGroup.alpha = 0f;
-            root.SetActive(false);
-            feedbackRoutine = null;
         }
 
         private IEnumerator ClearFeedback(TMP_Text text)
@@ -486,16 +412,8 @@ namespace Round1
         // ─────────────────────────────────────────────────────────────────────
         private static TMP_Text FindTMP(string goName)
         {
-            foreach (var text in FindObjectsByType<TMP_Text>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                if (text.name == goName && text.gameObject.scene.isLoaded) return text;
-            return null;
-        }
-
-        private static Image FindImage(string goName)
-        {
-            foreach (var image in FindObjectsByType<Image>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                if (image.name == goName && image.gameObject.scene.isLoaded) return image;
-            return null;
+            var go = GameObject.Find(goName);
+            return go != null ? go.GetComponent<TMP_Text>() : null;
         }
 
         /// Returns the first TMP_Text child of a badge root whose name contains "Text"

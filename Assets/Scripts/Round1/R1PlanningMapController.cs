@@ -14,6 +14,7 @@ namespace Round1
     {
         // ── References set by Editor or auto-found ─────────────────────────
         public R1RouteGraph routeGraph;
+        public bool enableLegacyRouteSelection = false;
         // planningPanel and planningCamera are private (runtime-built) to avoid Unity serializing stale refs
         private GameObject _planningPanel;
         private Camera     _planningCamera;
@@ -29,6 +30,10 @@ namespace Round1
         [Header("FP Controller References")]
         public MonoBehaviour fpBoatController; // Round1FirstPersonBoatController – enabled/disabled on toggle
         public MonoBehaviour fpInteraction;    // Round1FirstPersonInteraction
+        public R1OrientationMapView orientationMapView;
+
+        [Header("Map Readability")]
+        [Range(0f, 1f)] public float mapRainOverlayAlpha = 0.035f;
 
         [Header("Planning UI – Generated")]
         // Left info panel texts
@@ -57,11 +62,12 @@ namespace Round1
 
         // ── Gameplay HUD Elements ────────────────────────────────────────
         private List<GameObject> gameplayHudElements = new List<GameObject>();
+        private readonly List<R1ScreenRainOverlayController> rainOverlays = new List<R1ScreenRainOverlayController>();
+        private readonly Dictionary<R1ScreenRainOverlayController, float> rainOverlayOriginalAlphas = new Dictionary<R1ScreenRainOverlayController, float>();
 
         // ─────────────────────────────────────────────────────────────────
         private void Awake()
         {
-            Debug.Log("[R1Planning] Controller Awake");
         }
 
         private void Start()
@@ -94,32 +100,34 @@ namespace Round1
             }
             if (planningCamera == null)
                 planningCamera = CreatePlanningCamera();
+            ConfigurePlanningCamera();
 
-            // Group normal gameplay HUD
-            gameplayHudElements.Clear();
-            var allTransforms = FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            foreach (var t in allTransforms)
-            {
-                if (t.name.StartsWith("HUD_Group_Gameplay") ||
-                    t.name == "R1_Shared_HUD_Panel" ||
-                    t.name == "R1_Shared_Message_Panel")
-                    gameplayHudElements.Add(t.gameObject);
-            }
+            CollectGameplayHudElements();
+            CollectRainOverlays();
 
             // Global route visuals
             var globalVisuals = GameObject.Find("R1_PlanningVisuals");
             if (globalVisuals != null)
                 globalRouteVisuals = globalVisuals;
 
-            // Generate map UI
-            var existingUiGo = GameObject.Find("R1_PlanningUI_Group");
-            if (existingUiGo != null) Destroy(existingUiGo);
-            planningPanel = BuildPlanningUI();
-            BuildNodeMarkers();
+            if (!enableLegacyRouteSelection)
+            {
+                EnsureOrientationMapView();
+                planningPanel = orientationMapView != null ? orientationMapView.CanvasRoot : null;
+            }
+            else
+            {
+                // Generate legacy route planning UI
+                var existingUiGo = GameObject.Find("R1_PlanningUI_Group");
+                if (existingUiGo != null) Destroy(existingUiGo);
+                planningPanel = BuildPlanningUI();
+                BuildNodeMarkers();
+            }
 
             // Hide UI initially
             SetPlanningUiVisible(false);
-            SetNodeMarkersVisible(false);
+            if (enableLegacyRouteSelection) SetNodeMarkersVisible(false);
+            else if (orientationMapView != null) orientationMapView.SetVisible(false);
             if (globalRouteVisuals != null) globalRouteVisuals.SetActive(false);
 
             UpdateInstructionText();
@@ -134,11 +142,21 @@ namespace Round1
             var realtime = FindAnyObjectByType<R1RealtimeRoundController>();
             if (realtime != null && realtime.IsGameOver) return;
 
-            if (kb.tabKey.wasPressedThisFrame)
+            if (kb.tabKey.wasPressedThisFrame || (isPanelOpen && kb.escapeKey.wasPressedThisFrame))
                 TogglePanel();
 
             if (isPanelOpen)
-                HandleNumberInput();
+            {
+                if (enableLegacyRouteSelection)
+                {
+                    HandleNumberInput();
+                    UpdateOrientationPlayer();
+                }
+                else if (orientationMapView != null)
+                {
+                    orientationMapView.Refresh();
+                }
+            }
         }
 
         // ─────────────────────────────────────────────────────────────────
@@ -154,13 +172,70 @@ namespace Round1
 
             if (isPanelOpen)
             {
-                Debug.Log("[R1Planning] Open panel");
                 OpenPlanningMode();
             }
             else
             {
-                Debug.Log("[R1Planning] Close panel");
                 ClosePlanningMode();
+            }
+        }
+
+        private void CollectGameplayHudElements()
+        {
+            gameplayHudElements.Clear();
+            var allTransforms = FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (var t in allTransforms)
+            {
+                if (t == null || t.gameObject == gameObject)
+                {
+                    continue;
+                }
+
+                string objectName = t.name;
+                if (objectName.StartsWith("R1_Planning") ||
+                    objectName.StartsWith("R1_Orientation") ||
+                    objectName == "R1_PlanningMapCamera")
+                {
+                    continue;
+                }
+
+                bool isGameplayHud =
+                    objectName.StartsWith("HUD_Group_Gameplay") ||
+                    objectName == "TXT_R1_Shared_Objective" ||
+                    objectName == "TXT_R1_Shared_Message" ||
+                    objectName.Contains("GameplayHUD") ||
+                    objectName.Contains("Gameplay_HUD") ||
+                    objectName.Contains("HUD_Gameplay") ||
+                    objectName.Contains("HUD_Group") ||
+                    objectName.Contains("ObjectivePanel") ||
+                    objectName.Contains("Objective_Text") ||
+                    objectName.Contains("TXT_Objective") ||
+                    objectName.Contains("TXT_Timer") ||
+                    objectName.Contains("TXT_Durability") ||
+                    objectName.Contains("TXT_Cargo") ||
+                    objectName.Contains("TXT_Saved");
+
+                if (isGameplayHud && !gameplayHudElements.Contains(t.gameObject))
+                {
+                    gameplayHudElements.Add(t.gameObject);
+                }
+            }
+        }
+
+        private void CollectRainOverlays()
+        {
+            rainOverlays.Clear();
+            rainOverlayOriginalAlphas.Clear();
+            var overlays = FindObjectsByType<R1ScreenRainOverlayController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (var overlay in overlays)
+            {
+                if (overlay == null)
+                {
+                    continue;
+                }
+
+                rainOverlays.Add(overlay);
+                rainOverlayOriginalAlphas[overlay] = overlay.overlayAlpha;
             }
         }
 
@@ -174,33 +249,7 @@ namespace Round1
 
         private void SetPlanningUiVisible(bool visible)
         {
-            if (planningPanel == null) return;
-
-            planningPanel.SetActive(visible);
-            if (!visible) return;
-
-            foreach (var childName in new[] { "DarkOverlay", "TopBar", "LeftInfoPanel", "RouteOptionsPanel", "FooterBar" })
-            {
-                var child = planningPanel.transform.Find(childName);
-                if (child != null) child.gameObject.SetActive(true);
-            }
-
-            var group = planningPanel.GetComponent<CanvasGroup>();
-            if (group != null)
-            {
-                group.alpha = 1f;
-                group.interactable = false;
-                group.blocksRaycasts = false;
-            }
-        }
-
-        private static void HideContextOverlays()
-        {
-            foreach (var transform in FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            {
-                if (transform.name == "PNL_R1_InteractionPrompt" || transform.name == "PNL_R1_ContextToast")
-                    transform.gameObject.SetActive(false);
-            }
+            if (planningPanel != null) planningPanel.SetActive(visible);
         }
 
         private void OpenPlanningMode()
@@ -219,15 +268,22 @@ namespace Round1
 
             // Show UI
             SetGameplayHudVisible(false);
-            HideContextOverlays();
-            SetPlanningUiVisible(true);
-            RefreshPlanningUI();
+            SetMapRainReadability(true);
+            if (enableLegacyRouteSelection)
+            {
+                SetPlanningUiVisible(true);
+                RefreshPlanningUI();
 
-            // Show node markers
-            SetNodeMarkersVisible(true);
-            RefreshNodeMarkers();
+                // Show node markers
+                SetNodeMarkersVisible(true);
+                RefreshNodeMarkers();
 
-            if (globalRouteVisuals != null) globalRouteVisuals.SetActive(true);
+                if (globalRouteVisuals != null) globalRouteVisuals.SetActive(true);
+            }
+            else if (orientationMapView != null)
+            {
+                orientationMapView.SetVisible(true);
+            }
         }
 
         private void ClosePlanningMode()
@@ -246,12 +302,77 @@ namespace Round1
 
             // Hide UI
             SetGameplayHudVisible(true);
-            SetPlanningUiVisible(false);
+            SetMapRainReadability(false);
+            if (enableLegacyRouteSelection)
+            {
+                SetPlanningUiVisible(false);
 
-            // Hide node markers (keep target marker in R1RouteTargetController)
-            SetNodeMarkersVisible(false);
+                // Hide node markers (keep target marker in R1RouteTargetController)
+                SetNodeMarkersVisible(false);
 
-            if (globalRouteVisuals != null) globalRouteVisuals.SetActive(false);
+                if (globalRouteVisuals != null) globalRouteVisuals.SetActive(false);
+            }
+            else if (orientationMapView != null)
+            {
+                orientationMapView.SetVisible(false);
+            }
+        }
+
+        private void EnsureOrientationMapView()
+        {
+            if (orientationMapView == null)
+            {
+                orientationMapView = GetComponent<R1OrientationMapView>();
+                if (orientationMapView == null)
+                    orientationMapView = gameObject.AddComponent<R1OrientationMapView>();
+            }
+
+            orientationMapView.Initialize(planningCamera, fpBoatController as Round1FirstPersonBoatController);
+        }
+
+        private void ConfigurePlanningCamera()
+        {
+            if (planningCamera == null) return;
+
+            planningCamera.gameObject.name = "R1_PlanningMapCamera";
+            planningCamera.transform.position = new Vector3(2.6f, 22f, -0.2f);
+            planningCamera.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            planningCamera.orthographic = true;
+            planningCamera.orthographicSize = 9.35f;
+            planningCamera.nearClipPlane = 0.1f;
+            planningCamera.farClipPlane = 60f;
+            planningCamera.depth = 200;
+            planningCamera.clearFlags = CameraClearFlags.SolidColor;
+            planningCamera.backgroundColor = new Color(0.05f, 0.08f, 0.10f, 1f);
+            planningCamera.enabled = false;
+            planningCamera.gameObject.SetActive(false);
+        }
+
+        private void SetMapRainReadability(bool mapOpen)
+        {
+            foreach (var overlay in rainOverlays)
+            {
+                if (overlay == null)
+                {
+                    continue;
+                }
+
+                if (mapOpen)
+                {
+                    if (!rainOverlayOriginalAlphas.ContainsKey(overlay))
+                    {
+                        rainOverlayOriginalAlphas[overlay] = overlay.overlayAlpha;
+                    }
+
+                    overlay.overlayAlpha = Mathf.Min(mapRainOverlayAlpha, overlay.overlayAlpha);
+                }
+                else if (rainOverlayOriginalAlphas.TryGetValue(overlay, out float originalAlpha))
+                {
+                    overlay.overlayAlpha = originalAlpha;
+                }
+
+                overlay.ApplySettings();
+            }
         }
 
         // ── Property Helpers ─────────────────────────────────────────────
@@ -334,13 +455,13 @@ namespace Round1
             switch (node.nodeType)
             {
                 case R1NodeType.Rescue:
-                    return node.isCollected ? "<color=#AAB2AA>Đã đón</color>" : $"<color=#AB853D>Cứu {node.peopleCount} người</color>";
+                    return node.isCollected ? "<color=#AAAAAA>Đã đón</color>" : $"<color=#FF8800>Cứu {node.peopleCount} người</color>";
                 case R1NodeType.Shelter:
-                    return "<color=#779B82>Điểm trú an toàn</color>";
+                    return "<color=#44FF88>Điểm trú an toàn</color>";
                 case R1NodeType.Junction:
-                    return "<color=#8DA4A0>Ngã rẽ</color>";
+                    return "<color=#44CCFF>Ngã rẽ</color>";
                 case R1NodeType.Start:
-                    return "<color=#AB853D>Bến thuyền</color>";
+                    return "<color=#FFFF44>Bến thuyền</color>";
                 default:
                     return "Không rõ";
             }
@@ -350,10 +471,10 @@ namespace Round1
         {
             switch (node.nodeType)
             {
-                case R1NodeType.Rescue:  return node.isCollected ? "#8A918A" : "#AB853D";
-                case R1NodeType.Shelter: return "#779B82";
-                case R1NodeType.Junction: return "#8DA4A0";
-                default: return "#AB853D";
+                case R1NodeType.Rescue:  return node.isCollected ? "#888888" : "#FF8800";
+                case R1NodeType.Shelter: return "#44FF88";
+                case R1NodeType.Junction: return "#44CCFF";
+                default: return "#FFFF44";
             }
         }
 
@@ -362,6 +483,7 @@ namespace Round1
         // ─────────────────────────────────────────────────────────────────
         private void HandleNumberInput()
         {
+            if (!enableLegacyRouteSelection) return;
             if (IsEnRoute) return; // Cannot pick a new target while en route
             if (currentOptions == null || currentOptions.Count == 0) return;
             var kb = UnityEngine.InputSystem.Keyboard.current;
@@ -408,7 +530,7 @@ namespace Round1
         private void UpdateInstructionText()
         {
             if (instructionText == null) return;
-            const string base_ = "<b>WASD</b>  Lái thuyền     <b>E</b>  Cứu / Thả     <b>TAB</b>  Bản đồ     <b>Q</b>  Chờ";
+            const string base_ = "WASD: Lái thuyền | Tab: Bản đồ | E: Cứu/Thả người";
             if (routeGraph != null && routeGraph.selectedTargetNode != null)
                 instructionText.text = $"Đi tới {routeGraph.selectedTargetNode.displayName}.\n{base_}";
             else
@@ -427,9 +549,109 @@ namespace Round1
             public TextMeshPro label;
         }
 
+        private GameObject orientationMarkersRoot;
+        private Transform playerMarker;
+
+        
+        private void BuildOrientationMarkers()
+        {
+            if (orientationMarkersRoot != null) Destroy(orientationMarkersRoot);
+            orientationMarkersRoot = new GameObject("R1_OrientationMarkers");
+
+            // Player Marker
+            var pMarkerGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            pMarkerGo.name = "PlayerMarker";
+            pMarkerGo.transform.SetParent(orientationMarkersRoot.transform);
+            pMarkerGo.transform.localScale = new Vector3(2f, 1f, 6f);
+            Destroy(pMarkerGo.GetComponent<Collider>());
+            var pRend = pMarkerGo.GetComponent<Renderer>();
+            pRend.material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+            pRend.material.color = Color.yellow;
+            playerMarker = pMarkerGo.transform;
+
+            // Find all Rescue Zones and Shelter
+            var realtime = FindAnyObjectByType<R1RealtimeRoundController>();
+            
+            // Build Rescue A
+            CreateOrientationLabel("Nhà A", new Vector3(-65, 2, 70), () => {
+                if (realtime != null) return realtime.rescuedA ? "Đã cứu" : "Cần cứu";
+                return "Cần cứu";
+            });
+
+            // Build Rescue B
+            CreateOrientationLabel("Nhà B", new Vector3(80, 2, 85), () => {
+                if (realtime != null) return realtime.rescuedB ? "Đã cứu" : "Cần cứu";
+                return "Cần cứu";
+            });
+
+            // Build Shelter
+            CreateOrientationLabel("Điểm trú", new Vector3(20, 2, -15), () => "Điểm trú");
+        }
+
+        private System.Collections.Generic.List<System.Action> markerUpdaters = new System.Collections.Generic.List<System.Action>();
+
+        private void CreateOrientationLabel(string name, Vector3 pos, System.Func<string> getText)
+        {
+            var go = new GameObject("Marker_" + name);
+            go.transform.SetParent(orientationMarkersRoot.transform);
+            go.transform.position = pos + Vector3.up * 5f;
+            
+            var bg = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            bg.transform.SetParent(go.transform);
+            bg.transform.localPosition = Vector3.zero;
+            bg.transform.localScale = Vector3.one * 4f;
+            Destroy(bg.GetComponent<Collider>());
+            var rend = bg.GetComponent<Renderer>();
+            rend.material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+
+            var labelGo = new GameObject("Text");
+            labelGo.transform.SetParent(go.transform);
+            labelGo.transform.localPosition = Vector3.up * 4f;
+            var tmp = labelGo.AddComponent<TMPro.TextMeshPro>();
+            tmp.fontSize = 20f;
+            tmp.alignment = TMPro.TextAlignmentOptions.Center;
+
+            markerUpdaters.Add(() => {
+                string text = getText();
+                tmp.text = text;
+                if (text == "Cần cứu") {
+                    rend.material.color = new Color(1f, 0.5f, 0f);
+                    tmp.color = new Color(1f, 0.5f, 0f);
+                } else if (text == "Đã cứu") {
+                    rend.material.color = new Color(0.4f, 0.4f, 0.4f);
+                    tmp.color = new Color(0.4f, 0.4f, 0.4f);
+                } else if (text == "Điểm trú") {
+                    rend.material.color = new Color(0.2f, 1f, 0.4f);
+                    tmp.color = new Color(0.2f, 1f, 0.4f);
+                }
+            });
+        }
+
+        private void RefreshOrientationMarkers()
+        {
+            if (orientationMarkersRoot != null) orientationMarkersRoot.SetActive(true);
+            foreach (var update in markerUpdaters) update();
+        }
+
+        private void UpdateOrientationPlayer()
+        {
+            if (playerMarker != null && fpBoatController != null)
+            {
+                playerMarker.position = fpBoatController.transform.position + Vector3.up * 10f;
+                playerMarker.rotation = Quaternion.Euler(90, fpBoatController.transform.eulerAngles.y, 0);
+            }
+        }
+
+
+
         private void BuildNodeMarkers()
         {
             if (routeGraph == null) return;
+            if (!enableLegacyRouteSelection)
+            {
+                BuildOrientationMarkers();
+                return;
+            }
             nodeVisualsRoot = new GameObject("R1_PlanningNodeVisuals");
 
             foreach (var node in routeGraph.allNodes)
@@ -463,10 +685,16 @@ namespace Round1
         private void SetNodeMarkersVisible(bool visible)
         {
             if (nodeVisualsRoot != null) nodeVisualsRoot.SetActive(visible);
+            if (orientationMarkersRoot != null) orientationMarkersRoot.SetActive(visible);
         }
 
         private void RefreshNodeMarkers()
         {
+            if (!enableLegacyRouteSelection)
+            {
+                RefreshOrientationMarkers();
+                return;
+            }
             if (routeGraph == null) return;
             var current  = routeGraph.currentNode;
             var adjacent = current != null ? routeGraph.GetAdjacentNodes(current) : new List<R1RouteNode>();
@@ -480,13 +708,13 @@ namespace Round1
 
                 if (m.node == current)
                 {
-                    c = new Color(0.67f, 0.52f, 0.24f); // Ochre – current
+                    c = new Color(1f, 0.95f, 0f);   // Yellow – current
                     labelText = "★ " + m.node.displayName;
                 }
                 else if (adjacent.Contains(m.node))
                 {
                     // Cyan selectable with number
-                    c = new Color(0.55f, 0.65f, 0.63f);
+                    c = new Color(0f, 0.9f, 1f);
                     string status = "";
                     if (m.node.nodeType == R1NodeType.Rescue && !m.node.isCollected)
                         status = $"\n{m.node.peopleCount} người";
@@ -496,11 +724,11 @@ namespace Round1
                     adjIdx++;
                 }
                 else if (m.node.nodeType == R1NodeType.Rescue)
-                    c = new Color(0.67f, 0.52f, 0.24f);
+                    c = new Color(1f, 0.5f, 0f);    // Orange – rescue
                 else if (m.node.nodeType == R1NodeType.Shelter)
-                    c = new Color(0.47f, 0.61f, 0.51f);
+                    c = new Color(0.2f, 1f, 0.4f);  // Green – shelter
                 else
-                    c = new Color(0.36f, 0.40f, 0.38f);
+                    c = new Color(0.4f, 0.4f, 0.4f); // Grey – unreachable
 
                 m.rend.material.color = c;
                 m.label.text = labelText;
@@ -538,28 +766,22 @@ namespace Round1
         // ─────────────────────────────────────────────────────────────────
         private GameObject BuildPlanningUI()
         {
-            // Always use the active shared gameplay canvas. The previous broad
-            // name search could attach the map to the disabled legacy R1_HUD_Canvas.
+            // Find or use R1_Shared_RoundGameUI_Canvas
             Canvas parentCanvas = null;
-            var sharedCanvas = GameObject.Find("R1_Shared_RoundGameUI_Canvas");
-            if (sharedCanvas != null && sharedCanvas.activeInHierarchy)
-                parentCanvas = sharedCanvas.GetComponent<Canvas>();
-
             var allCanvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            if (parentCanvas == null)
+            foreach (var c in allCanvases)
             {
-                foreach (var c in allCanvases)
+                if (c.name.Contains("R1_Shared") || c.name.Contains("R1_HUD"))
                 {
-                    if (c.isActiveAndEnabled && c.name.Contains("R1_Shared"))
-                    {
-                        parentCanvas = c;
-                        break;
-                    }
+                    parentCanvas = c;
+                    break;
                 }
             }
+            if (parentCanvas == null && allCanvases.Length > 0)
+                parentCanvas = allCanvases[0];
             if (parentCanvas == null)
             {
-                Debug.LogError("[R1Planning] Active shared gameplay Canvas not found.");
+                Debug.LogError("[R1Planning] No Canvas found!");
                 return new GameObject("R1_PlanningUI_Group_ERROR");
             }
 
@@ -572,13 +794,8 @@ namespace Round1
             panelRT.anchorMax = Vector2.one;
             panelRT.offsetMin = Vector2.zero;
             panelRT.offsetMax = Vector2.zero;
-            var canvasGroup = panel.AddComponent<CanvasGroup>();
-            canvasGroup.alpha = 1f;
-            canvasGroup.interactable = false;
-            canvasGroup.blocksRaycasts = false;
 
             BuildUIElements(panel.transform);
-            ApplyPlanningTypography(panel.transform);
             return panel;
         }
 
@@ -588,75 +805,90 @@ namespace Round1
             var darkOverlay = CreatePanel(root, "DarkOverlay",
                 new Vector2(0f, 0f), new Vector2(1f, 1f),
                 new Vector2(0, 0), new Vector2(0, 0),
-                new Color(0.02f, 0.05f, 0.05f, 0.24f));
+                new Color(0f, 0f, 0f, 0.4f)); // Light translucent overlay
 
             // ── TopBar ──────────────────────────────────────────────────
             var topBar = CreatePanel(root, "TopBar",
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
-                new Vector2(0, -76f), new Vector2(0, 0),
-                new Color(0.035f, 0.10f, 0.10f, 0.92f));
-            CreateTMP(topBar.transform, "TitleText", "BẢN ĐỒ CỨU HỘ  •  ROUND 1",
-                      34, TextAlignmentOptions.Center, new Color(0.94f, 0.91f, 0.84f),
+                new Vector2(0, -60f), new Vector2(0, 0),
+                new Color(0.05f, 0.15f, 0.25f, 0.9f));
+            CreateTMP(topBar.transform, "TitleText", "BẢN ĐỒ CỨU HỘ - ROUND 1",
+                      28, TextAlignmentOptions.Center, Color.white,
                       Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
             // ── LeftInfoPanel ──────────────────────────────────────────
             var leftPanel = CreatePanel(root, "LeftInfoPanel",
                 new Vector2(0f, 0f), new Vector2(0f, 1f),
-                new Vector2(24f, 76f), new Vector2(384f, -96f),
-                new Color(0.035f, 0.10f, 0.10f, 0.88f));
+                new Vector2(20f, 70f), new Vector2(320f, -80f),
+                new Color(0.05f, 0.1f, 0.15f, 0.85f));
 
             var leftLayout = leftPanel.AddComponent<VerticalLayoutGroup>();
-            leftLayout.padding = new RectOffset(26, 26, 26, 26);
-            leftLayout.spacing = 14;
+            leftLayout.padding = new RectOffset(20, 20, 20, 20);
+            leftLayout.spacing = 15;
             leftLayout.childForceExpandWidth = true;
             leftLayout.childForceExpandHeight = false;
 
             txtCurrentNode = CreateTMPInLayout(leftPanel.transform, "TxtCurrentNode",
-                                               "Vị trí hiện tại: –", 22,
-                                               TextAlignmentOptions.Left, new Color(0.94f, 0.91f, 0.84f));
+                                               "Vị trí hiện tại: –", 18,
+                                               TextAlignmentOptions.Left, Color.white);
             txtTurns = CreateTMPInLayout(leftPanel.transform, "TxtTurns",
-                                          "Lượt còn lại: –", 20,
-                                          TextAlignmentOptions.Left, new Color(0.72f, 0.64f, 0.43f));
+                                          "Lượt còn lại: –", 18,
+                                          TextAlignmentOptions.Left, new Color(1f, 0.9f, 0.3f));
             txtCargo = CreateTMPInLayout(leftPanel.transform, "TxtCargo",
-                                          "Trên thuyền: – / 3", 20,
-                                          TextAlignmentOptions.Left, new Color(0.82f, 0.84f, 0.80f));
+                                          "Trên thuyền: – / 3", 18,
+                                          TextAlignmentOptions.Left, new Color(0.4f, 0.9f, 1f));
             txtSaved = CreateTMPInLayout(leftPanel.transform, "TxtSaved",
-                                          "Đã cứu: – / 3", 20,
-                                          TextAlignmentOptions.Left, new Color(0.82f, 0.84f, 0.80f));
+                                          "Đã cứu: – / 3", 18,
+                                          TextAlignmentOptions.Left, new Color(0.3f, 1f, 0.5f));
 
             CreateDivider(leftPanel.transform);
-            var txtMapObjective = CreateTMPInLayout(leftPanel.transform, "TxtObjective",
-                                                    "MỤC TIÊU\nCứu 3 người và đưa về điểm trú.", 19,
-                                                    TextAlignmentOptions.Left, new Color(0.72f, 0.64f, 0.43f));
-            txtMapObjective.GetComponent<LayoutElement>().preferredHeight = 86f;
+            CreateTMPInLayout(leftPanel.transform, "TxtObjective",
+                              "Mục tiêu:\nCứu 3 người và đưa về Nhà văn hóa.", 16,
+                              TextAlignmentOptions.Left, new Color(0.8f, 0.8f, 0.8f));
 
             // ── RouteOptionsPanel ────────────────────────────────────────
             var rightPanel = CreatePanel(root, "RouteOptionsPanel",
                 new Vector2(1f, 0f), new Vector2(1f, 1f),
-                new Vector2(-424f, 76f), new Vector2(-24f, -96f),
-                new Color(0.035f, 0.10f, 0.10f, 0.88f));
+                new Vector2(-380f, 70f), new Vector2(-20f, -80f),
+                new Color(0.05f, 0.1f, 0.15f, 0.85f));
 
             var rightLayout = rightPanel.AddComponent<VerticalLayoutGroup>();
-            rightLayout.padding = new RectOffset(26, 26, 26, 26);
-            rightLayout.spacing = 14;
+            
+            if (!enableLegacyRouteSelection) {
+                // Wipe left panel UI entirely
+                foreach (Transform child in leftPanel.transform) Destroy(child.gameObject);
+                var legLayout = leftPanel.GetComponent<VerticalLayoutGroup>();
+                legLayout.padding = new RectOffset(20,20,20,20);
+                legLayout.spacing = 20;
+                
+                CreateTMPInLayout(leftPanel.transform, "L_Title", "CHÚ THÍCH", 24, TextAlignmentOptions.Center, Color.white);
+                CreateTMPInLayout(leftPanel.transform, "L_1", "<color=yellow>■</color> Vị trí thuyền", 20, TextAlignmentOptions.Left, Color.white);
+                CreateTMPInLayout(leftPanel.transform, "L_2", "<color=#FF8800>●</color> Nhà cần cứu", 20, TextAlignmentOptions.Left, Color.white);
+                CreateTMPInLayout(leftPanel.transform, "L_3", "<color=#33FF66>●</color> Điểm trú", 20, TextAlignmentOptions.Left, Color.white);
+                CreateTMPInLayout(leftPanel.transform, "L_4", "<color=#666666>●</color> Đã cứu", 20, TextAlignmentOptions.Left, Color.white);
+
+                // Right panel
+                rightPanel.SetActive(false);
+                return;
+            }
+
+            rightLayout.padding = new RectOffset(20, 20, 20, 20);
+            rightLayout.spacing = 15;
             rightLayout.childForceExpandWidth = true;
             rightLayout.childForceExpandHeight = false;
 
             txtRouteOptions = CreateTMPInLayout(rightPanel.transform, "TxtRoutes",
-                                                "Đang tải...", 22,
-                                                TextAlignmentOptions.Left, new Color(0.94f, 0.91f, 0.84f));
-            var routeLayout = txtRouteOptions.GetComponent<LayoutElement>();
-            routeLayout.preferredHeight = 360f;
-            routeLayout.flexibleHeight = 1f;
+                                                "Đang tải...", 20,
+                                                TextAlignmentOptions.Left, Color.white);
 
             // ── Footer ───────────────────────────────────────────────────
             var footerBar = CreatePanel(root, "FooterBar",
                 new Vector2(0f, 0f), new Vector2(1f, 0f),
-                new Vector2(0, 0), new Vector2(0, 58f),
-                new Color(0.035f, 0.10f, 0.10f, 0.92f));
+                new Vector2(0, 0), new Vector2(0, 50f),
+                new Color(0f, 0.1f, 0.25f, 0.95f));
             txtFooter = CreateTMP(footerBar.transform, "TxtFooter",
-                                  "Tab: Đóng bản đồ | 1/2/3: Chọn tuyến | Q: Chờ 1 lượt",
-                                  18, TextAlignmentOptions.Center, new Color(0.82f, 0.84f, 0.80f),
+                                  "Tab/Esc: Đóng bản đồ",
+                                  15, TextAlignmentOptions.Center, new Color(0.7f, 0.9f, 1f),
                                   Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         }
 
@@ -671,7 +903,6 @@ namespace Round1
             go.transform.SetParent(parent, false);
             var img = go.AddComponent<Image>();
             img.color = color;
-            img.raycastTarget = false;
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = anchorMin;
             rt.anchorMax = anchorMax;
@@ -700,36 +931,6 @@ namespace Round1
             return tmp;
         }
 
-        private static void ApplyPlanningTypography(Transform root)
-        {
-            var heading = FindLoadedFont("BarlowCondensed_Bold SDF SDF");
-            var label = FindLoadedFont("BarlowCondensed_SemiBold SDF SDF");
-            var body = FindLoadedFont("BeVietnamPro_Medium SDF SDF");
-            var regular = FindLoadedFont("BeVietnamPro_Regular SDF SDF");
-
-            foreach (var text in root.GetComponentsInChildren<TextMeshProUGUI>(true))
-            {
-                if (text.name == "TitleText")
-                    text.font = heading != null ? heading : text.font;
-                else if (text.name == "TxtCurrentNode" || text.name == "TxtObjective")
-                    text.font = label != null ? label : text.font;
-                else if (text.name == "TxtRoutes" || text.name == "TxtFooter")
-                    text.font = regular != null ? regular : text.font;
-                else
-                    text.font = body != null ? body : text.font;
-
-                text.raycastTarget = false;
-                text.overflowMode = TextOverflowModes.Ellipsis;
-            }
-        }
-
-        private static TMP_FontAsset FindLoadedFont(string fontName)
-        {
-            foreach (var font in Resources.FindObjectsOfTypeAll<TMP_FontAsset>())
-                if (font.name == fontName) return font;
-            return null;
-        }
-
         private static TextMeshProUGUI CreateTMPInLayout(Transform parent, string name, string text,
             float fontSize, TextAlignmentOptions align, Color color)
         {
@@ -741,7 +942,6 @@ namespace Round1
             tmp.alignment = align;
             tmp.color     = color;
             tmp.textWrappingMode = TextWrappingModes.Normal;
-            tmp.raycastTarget = false;
 
             var le = go.AddComponent<LayoutElement>();
             le.preferredHeight = fontSize * 2.2f;
@@ -754,8 +954,7 @@ namespace Round1
             var go = new GameObject("Divider");
             go.transform.SetParent(parent, false);
             var img = go.AddComponent<Image>();
-            img.color = new Color(0.67f, 0.52f, 0.24f, 0.45f);
-            img.raycastTarget = false;
+            img.color = new Color(0.3f, 0.5f, 0.7f, 0.5f);
             var le = go.AddComponent<LayoutElement>();
             le.preferredHeight = 1f;
             le.flexibleWidth = 1;

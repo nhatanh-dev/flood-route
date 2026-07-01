@@ -9,8 +9,8 @@ namespace Round1
         [SerializeField] private Round1BoatController boatController;
         [SerializeField] private int cargoCapacity = 3;
 
-        private const int InitialNhaBaCivilians = 2;
-        private const int InitialNhaTuCivilians = 1;
+        private const int InitialNhaBaCivilians = 1;
+        private const int InitialNhaTuCivilians = 2;
         private const int BaiDinhCapacity = 3;
         private const int GoCaoCapacity = 2;
 
@@ -175,16 +175,22 @@ namespace Round1
         private bool PickupFromNhaTu()
         {
             if (RemainingAtNhaTu <= 0) return false;
-            if (Cargo >= CargoCapacity)
+            int availableCargoSlots = Mathf.Max(0, CargoCapacity - Cargo);
+            int pickupCount = Mathf.Min(RemainingAtNhaTu, availableCargoSlots);
+            if (pickupCount <= 0)
             {
                 ShowFeedback("Thuyền đã đầy.");
                 return false;
             }
 
-            RemainingAtNhaTu = 0;
-            Cargo += 1;
-            SetCivilianVisualActive(sceneReferences != null ? sceneReferences.civilianR1NhaTu1 : null, false);
-            ShowFeedback($"Đã đón 1 người.");
+            for (int i = 0; i < pickupCount; i++)
+            {
+                int civilianIndex = InitialNhaTuCivilians - RemainingAtNhaTu;
+                RemainingAtNhaTu -= 1;
+                Cargo += 1;
+                DisableNhaTuCivilianVisual(civilianIndex);
+            }
+            ShowFeedback($"Đã đón {pickupCount} người.");
             return true;
         }
 
@@ -242,6 +248,15 @@ namespace Round1
             Transform civilianVisual = civilianIndex == 0
                 ? sceneReferences != null ? sceneReferences.civilianR1NhaBa1 : null
                 : sceneReferences != null ? sceneReferences.civilianR1NhaBa2 : null;
+
+            SetCivilianVisualActive(civilianVisual, false);
+        }
+
+        private void DisableNhaTuCivilianVisual(int civilianIndex)
+        {
+            Transform civilianVisual = civilianIndex == 0
+                ? sceneReferences != null ? sceneReferences.civilianR1NhaTu1 : null
+                : sceneReferences != null ? sceneReferences.civilianR1NhaTu2 : null;
 
             SetCivilianVisualActive(civilianVisual, false);
         }

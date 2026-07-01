@@ -40,7 +40,7 @@ public class Round2RescueZone : MonoBehaviour
                 var tmp = txtObj.GetComponent<TMPro.TextMeshPro>();
                 if (tmp != null)
                 {
-                    tmp.text = $"Cứu người: {civiliansAvailable}";
+                    tmp.text = "Có người mắc kẹt gần đây.";
                 }
             }
         }
