@@ -59,6 +59,7 @@ namespace Round1
 
         // ── Global map-only visuals ──────────────────────────────────────
         private GameObject globalRouteVisuals;
+        private bool originalFogState;
 
         // ── Gameplay HUD Elements ────────────────────────────────────────
         private List<GameObject> gameplayHudElements = new List<GameObject>();
@@ -68,6 +69,16 @@ namespace Round1
         // ─────────────────────────────────────────────────────────────────
         private void Awake()
         {
+        }
+
+        private void OnDisable()
+        {
+            if (isPanelOpen) { RenderSettings.fog = originalFogState; }
+        }
+
+        private void OnDestroy()
+        {
+            if (isPanelOpen) { RenderSettings.fog = originalFogState; }
         }
 
         private void Start()
@@ -253,6 +264,9 @@ namespace Round1
 
         private void OpenPlanningMode()
         {
+            originalFogState = RenderSettings.fog;
+            RenderSettings.fog = false;
+
             // Switch cameras
             if (fpCamera != null) fpCamera.enabled = false;
             if (planningCamera != null)
@@ -287,6 +301,8 @@ namespace Round1
 
         private void ClosePlanningMode()
         {
+            RenderSettings.fog = originalFogState;
+
             // Restore FP camera
             if (planningCamera != null)
             {
