@@ -21,52 +21,54 @@ namespace Round1
         public int civiliansSafe = 0;
 
         [Header("Objectives")]
-        public string currentObjectiveText = "Đi cứu Nhà cần cứu 1.";
+        public string currentObjectiveText = "Mục tiêu: Tìm nhà có tín hiệu cầu cứu.";
 
         [Header("Rescue State")]
         public bool rescuedA = false;
         public bool rescuedB = false;
+        public bool finished = false;
 
         public bool TryRescueA(int amount)
         {
-            if (rescuedA || endState != Round1EndState.Playing) return false;
-            if (currentCargo + amount > boatCapacity) return false;
-
-            currentCargo += amount;
+            if (rescuedA || currentCargo + amount > boatCapacity) return false;
             rescuedA = true;
-            currentObjectiveText = "Đi cứu Nhà cần cứu 2.";
+            currentCargo += amount;
+            // Changed from specific house to general find objective if there's still space and people
+            currentObjectiveText = "Mục tiêu: Tiếp tục tìm người mắc kẹt.";
             return true;
         }
 
         public bool TryRescueB(int amount)
         {
-            if (rescuedB || endState != Round1EndState.Playing) return false;
-            if (!rescuedA) return false; // Must rescue A first
-            if (currentCargo + amount > boatCapacity) return false;
-
-            currentCargo += amount;
+            if (rescuedB || currentCargo + amount > boatCapacity) return false;
             rescuedB = true;
-            currentObjectiveText = "Đưa người dân về điểm trú.";
+            currentCargo += amount;
+            currentObjectiveText = "Mục tiêu: Đưa người dân đến điểm trú.";
             return true;
         }
 
         public bool TryDropOff()
         {
-            if (endState != Round1EndState.Playing || currentCargo <= 0) return false;
-            
+            if (currentCargo <= 0) return false;
             civiliansSafe += currentCargo;
             currentCargo = 0;
-            currentObjectiveText = "An toàn.";
-
-            if (civiliansSafe >= totalCivilians)
+            if (rescuedA && rescuedB)
             {
+                finished = true;
+                currentObjectiveText = "An toàn.";
                 TriggerWin();
             }
-
+            else
+            {
+                currentObjectiveText = "Mục tiêu: Tiếp tục tìm người mắc kẹt.";
+            }
             return true;
         }
 
         [Header("Damage Settings")]
+        public float collisionCooldown = 1f;
+        private float lastCollisionTime = -1f;
+        public AudioClip collisionSound;
         public bool enableCollisionDamage = true;
         public int collisionDamage = 1;
         public float minDamageSpeed = 1.5f;
@@ -81,6 +83,7 @@ namespace Round1
         }
 
         private float lastDamageTime = -999f;
+        public float LastDamageTime => lastDamageTime;
         private Round1EndState endState = Round1EndState.Playing;
         public bool IsGameOver => endState != Round1EndState.Playing;
 
@@ -90,6 +93,7 @@ namespace Round1
         {
             currentTimeRemaining = roundTimeSeconds;
             currentBoatDurability = maxBoatDurability;
+            currentObjectiveText = "Mục tiêu: Tìm nhà có tín hiệu cầu cứu."; // Ensure it's set correctly
             interactionScript = FindAnyObjectByType<Round1FirstPersonInteraction>();
         }
 
@@ -110,8 +114,8 @@ namespace Round1
                 currentTimeRemaining -= Time.deltaTime;
                 if (currentTimeRemaining <= 0)
                 {
-                    currentTimeRemaining = 0;
-                    TriggerFail("Hết thời gian!", "Bạn đã không hoàn thành việc cứu hộ trước khi hết thời gian.");
+                    currentTimeRemaining = 0f;
+                    TriggerFail("Hết thời gian!", "Hết thời gian cứu hộ.");
                 }
             }
         }
@@ -128,12 +132,18 @@ namespace Round1
 
             if (interactionScript != null)
             {
-                interactionScript.ShowFeedback($"Va chạm mạnh! Độ bền thuyền -{amount}.");
+                interactionScript.ShowFeedback($"Va chạm mạnh! Độ bền -{amount}.");
+            }
+            if (collisionSound != null)
+            {
+                var cam = UnityEngine.Camera.main;
+                UnityEngine.AudioSource.PlayClipAtPoint(collisionSound, cam != null ? cam.transform.position : transform.position, 1.0f);
             }
 
             if (currentBoatDurability <= 0)
             {
-                TriggerFail("Thuyền bị hỏng!", "Thuyền đã va chạm quá nhiều. Hãy lái chậm và tránh vật cản.");
+                currentBoatDurability = 0;
+                TriggerFail("Thuyền đã bị hỏng!", "Thuyền đã bị hỏng trong quá trình cứu hộ.");
             }
         }
 

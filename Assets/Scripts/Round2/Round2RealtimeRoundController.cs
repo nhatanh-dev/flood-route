@@ -24,13 +24,14 @@ public class Round2RealtimeRoundController : MonoBehaviour
 
     public int currentBoatDurability => boatDurability;
     public int maxBoatDurability => 3;
+    public AudioClip collisionSound;
     public int currentCargo => cargo;
     public int civiliansSafe => safe;
     public int totalCivilians => 4;
     public int boatCapacity => 4;
     public float CurrentTimeRemaining => roundTimer;
     public string LastFailReason => lastFailReasonCode;
-    public string currentObjectiveText = "Mục tiêu: Đi cứu người dân.";
+    public string currentObjectiveText = "Mục tiêu: Tìm nhà có tín hiệu cầu cứu.";
 
     [Header("HUD References")]
     public TextMeshProUGUI txtTimer;
@@ -46,6 +47,7 @@ public class Round2RealtimeRoundController : MonoBehaviour
         cargo = 0;
         safe = 0;
         currentState = Round2GameState.Playing;
+        currentObjectiveText = "Mục tiêu: Tìm nhà có tín hiệu cầu cứu.";
 
         UpdateHUD();
     }
@@ -70,9 +72,9 @@ public class Round2RealtimeRoundController : MonoBehaviour
     private void UpdateHUD()
     {
         UpdateTimerHUD();
-        if (txtDurability != null) txtDurability.text = $"Độ bền thuyền: {boatDurability}/{maxBoatDurability}";
+        if (txtDurability != null) txtDurability.text = $"Độ bền: {boatDurability}/{maxBoatDurability}";
         if (txtCargo != null) txtCargo.text = $"Trên thuyền: {cargo}/{boatCapacity}";
-        if (txtSafe != null) txtSafe.text = $"Đã an toàn: {safe}/{totalCivilians}";
+        if (txtSafe != null) txtSafe.text = $"An toàn: {safe}/{totalCivilians}";
         if (txtObjective != null) txtObjective.text = currentObjectiveText;
     }
 
@@ -112,6 +114,14 @@ public class Round2RealtimeRoundController : MonoBehaviour
     {
         if (currentState != Round2GameState.Playing) return;
         boatDurability -= amount;
+        
+        ShowFeedback($"Va chạm mạnh! Độ bền -{amount}.");
+
+        if (collisionSound != null)
+        {
+            var cam = UnityEngine.Camera.main;
+            UnityEngine.AudioSource.PlayClipAtPoint(collisionSound, cam != null ? cam.transform.position : transform.position, 1.0f);
+        }
         if (boatDurability <= 0)
         {
             boatDurability = 0;
@@ -130,7 +140,7 @@ public class Round2RealtimeRoundController : MonoBehaviour
     {
         if (currentState != Round2GameState.Playing) return;
         currentState = Round2GameState.Win;
-        SetObjective("Chiến thắng! Tất cả đã an toàn.");
+        SetObjective("Mục tiêu: Hoàn thành cứu hộ!");
         Debug.Log("[R2 State] Player WIN!");
     }
 

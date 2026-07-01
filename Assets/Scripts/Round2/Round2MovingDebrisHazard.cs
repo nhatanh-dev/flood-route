@@ -48,6 +48,7 @@ public class Round2MovingDebrisHazard : MonoBehaviour
 
     [Header("References")]
     public Round2RealtimeRoundController roundController;
+    public Round2CollisionWarningUI collisionWarningUI;
 
     private Vector3 cachedPointA;
     private Vector3 cachedPointB;
@@ -71,6 +72,11 @@ public class Round2MovingDebrisHazard : MonoBehaviour
         if (roundController == null)
         {
             roundController = FindObjectOfType<Round2RealtimeRoundController>();
+        }
+
+        if (collisionWarningUI == null)
+        {
+            collisionWarningUI = FindObjectOfType<Round2CollisionWarningUI>();
         }
 
         CacheWaypoints();
@@ -345,6 +351,11 @@ public class Round2MovingDebrisHazard : MonoBehaviour
             roundController = FindObjectOfType<Round2RealtimeRoundController>();
         }
 
+        if (collisionWarningUI == null)
+        {
+            collisionWarningUI = FindObjectOfType<Round2CollisionWarningUI>();
+        }
+
         if (roundController == null || !roundController.IsPlaying())
         {
             return;
@@ -371,9 +382,21 @@ public class Round2MovingDebrisHazard : MonoBehaviour
             damagedBoatsThisPass.Add(boatController);
         }
 
+        if (damageAmount > 0)
+        {
+            int durabilityBefore = roundController.currentBoatDurability;
+            roundController.ApplyDamage(damageAmount);
+            bool durabilityLost = roundController.currentBoatDurability < durabilityBefore;
+
+            if (durabilityLost && collisionWarningUI != null)
+            {
+                collisionWarningUI.TriggerDamageWarning(roundController.currentBoatDurability <= 0);
+            }
+
+            roundController.ShowFeedback("Va chạm vật trôi! Độ bền -" + damageAmount + ".");
+        }
+        
         lastDamageTime = Time.time;
-        roundController.ApplyDamage(damageAmount);
-        roundController.ShowFeedback("Va ch\u1EA1m v\u1EADt tr\u00F4i! \u0110\u1ED9 b\u1EC1n thuy\u1EC1n -" + damageAmount + ".");
 
         if (applySoftImpact)
         {

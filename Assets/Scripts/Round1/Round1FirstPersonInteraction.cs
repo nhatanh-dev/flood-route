@@ -85,8 +85,8 @@ namespace Round1
             }
 
             // Badge roots
-            nhaBaBadgeRoot = GameObject.Find("R1_RescueBadge_NhaBa_2Nguoi");
-            nhaTuBadgeRoot = GameObject.Find("R1_RescueBadge_NhaTu_1Nguoi");
+            nhaBaBadgeRoot = GameObject.Find("R1_RescueBadge_NhaBa_1Nguoi");
+            nhaTuBadgeRoot = GameObject.Find("R1_RescueBadge_NhaTu_2Nguoi");
             nhaBaPeopleRoot = GameObject.Find("R1_RescuePeople_NhaBa_2");
             nhaTuPeopleRoot = GameObject.Find("R1_NhaTu_RescueAnchor");
 
@@ -97,7 +97,7 @@ namespace Round1
                 nhaTuBadgeText = FindBadgeCountText(nhaTuBadgeRoot);
 
             // Set bottom instruction bar
-            SetMsg("WASD: Lái thuyền | E: Cứu/Thả | Tab: Bản đồ");
+            SetMsg("WASD: Lái thuyền | E: Cứu/Thả người | Tab: Bản đồ");
 
             // Turn counter is now used in FP mode
             // if (txtTurn != null) txtTurn.text = "Lượt: —";
@@ -149,16 +149,16 @@ namespace Round1
 
             if (insideRescueZoneA)
             {
-                if (realtimeController != null && !realtimeController.rescuedA && objText.Contains("Nhà cần cứu 1"))
+                if (realtimeController != null && !realtimeController.rescuedA)
                 {
                     if (boatSpeed <= maxInteractSpeed)
                     {
-                        prompt = "Nhấn E để cứu 2 người.";
+                        prompt = "Nhấn E để cứu người.";
                         if (ePressed)
                         {
-                            if (realtimeController.TryRescueA(2))
+                            if (realtimeController.TryRescueA(1))
                             {
-                                ShowFeedback("Đã cứu 2 người lên thuyền.");
+                                ShowFeedback("Đã cứu 1 người dân.");
                                 if (nhaBaBadgeRoot != null) nhaBaBadgeRoot.SetActive(false);
                                 if (nhaBaPeopleRoot != null) nhaBaPeopleRoot.SetActive(false);
                                 prompt = ""; // cleared
@@ -167,22 +167,22 @@ namespace Round1
                     }
                     else
                     {
-                        prompt = "Dừng thuyền để cứu người an toàn.";
+                        prompt = "Dừng thuyền lại để cứu người.";
                     }
                 }
             }
             else if (insideRescueZoneB)
             {
-                if (realtimeController != null && !realtimeController.rescuedB && objText.Contains("Nhà cần cứu 2"))
+                if (realtimeController != null && !realtimeController.rescuedB)
                 {
                     if (boatSpeed <= maxInteractSpeed)
                     {
-                        prompt = "Nhấn E để cứu 1 người.";
+                        prompt = "Nhấn E để cứu người.";
                         if (ePressed)
                         {
-                            if (realtimeController.TryRescueB(1))
+                            if (realtimeController.TryRescueB(2))
                             {
-                                ShowFeedback("Đã cứu thêm 1 người.");
+                                ShowFeedback("Đã cứu 2 người dân.");
                                 if (nhaTuBadgeRoot != null) nhaTuBadgeRoot.SetActive(false);
                                 if (nhaTuPeopleRoot != null) nhaTuPeopleRoot.SetActive(false);
                                 prompt = ""; // cleared
@@ -191,7 +191,7 @@ namespace Round1
                     }
                     else
                     {
-                        prompt = "Dừng thuyền để cứu người an toàn.";
+                        prompt = "Dừng thuyền lại để cứu người.";
                     }
                 }
             }
@@ -207,19 +207,20 @@ namespace Round1
                     {
                         if (boatSpeed <= maxInteractSpeed)
                         {
-                            prompt = "Nhấn E để đưa người dân vào điểm trú.";
+                            prompt = "Nhấn E để thả người.";
                             if (ePressed)
                             {
+                                int droppedOff = cargo;
                                 if (realtimeController.TryDropOff())
                                 {
-                                    ShowFeedback("Đã đưa 3 người dân vào điểm trú an toàn.");
+                                    ShowFeedback($"Đã đưa {droppedOff} người dân đến nơi an toàn.");
                                     prompt = "";
                                 }
                             }
                         }
                         else
                         {
-                            prompt = "Dừng thuyền để cập bến an toàn.";
+                            prompt = "Dừng thuyền lại để thả người.";
                         }
                     }
                 }
@@ -332,14 +333,14 @@ namespace Round1
 
                 if (txtDurability != null)
                 {
-                    txtDurability.text = $"Độ bền thuyền: {realtimeController.currentBoatDurability}/{realtimeController.maxBoatDurability}";
+                    txtDurability.text = $"Độ bền: {realtimeController.currentBoatDurability}/{realtimeController.maxBoatDurability}";
                 }
 
                 if (txtCargo != null)
                     txtCargo.text = $"Trên thuyền: {realtimeController.currentCargo}/{realtimeController.boatCapacity}";
                 
                 if (txtSaved != null)
-                    txtSaved.text = $"Đã an toàn: {realtimeController.civiliansSafe}/{realtimeController.totalCivilians}";
+                    txtSaved.text = $"An toàn: {realtimeController.civiliansSafe}/{realtimeController.totalCivilians}";
             }
         }
 
@@ -361,7 +362,7 @@ namespace Round1
 
             if (realtimeController != null)
             {
-                txtObjective.text = "Mục tiêu: " + realtimeController.currentObjectiveText;
+                txtObjective.text = realtimeController.currentObjectiveText;
             }
         }
 

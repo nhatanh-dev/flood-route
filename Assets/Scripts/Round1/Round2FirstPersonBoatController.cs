@@ -76,6 +76,7 @@ namespace Round2
         
         private float lastDamageTime = -9999f;
         public global::Round2RealtimeRoundController roundController;
+        public Round2CollisionWarningUI collisionWarningUI;
 
         private BoxCollider internalCollider;
 
@@ -142,6 +143,10 @@ namespace Round2
             if (roundController == null)
             {
                 roundController = FindObjectOfType<global::Round2RealtimeRoundController>();
+            }
+            if (collisionWarningUI == null)
+            {
+                collisionWarningUI = GetComponent<Round2CollisionWarningUI>();
             }
         }
 
@@ -229,6 +234,10 @@ namespace Round2
                 currentSpeed = 0f;
                 softImpactTimer = 0f;
                 softImpactVelocity = Vector3.zero;
+                if (collisionWarningUI != null)
+                {
+                    collisionWarningUI.ClearWarning();
+                }
                 return;
             }
 
@@ -593,9 +602,6 @@ namespace Round2
             if (!enableCollisionDamage) return;
             if (roundController != null && roundController.currentState != global::Round2GameState.Playing) return;
 
-            if (Mathf.Abs(currentSpeed) < minDamageSpeed) return;
-            if (Time.time - lastDamageTime < damageCooldown) return;
-
             string colName = col.gameObject.name.ToLower();
             if (colName.Contains("boundary") || colName.Contains("bnd_") || 
                 colName.Contains("realtimeboundaries") || colName.Contains("invisible") || 
@@ -604,15 +610,38 @@ namespace Round2
                 return;
             }
 
+            if (collisionWarningUI == null)
+            {
+                collisionWarningUI = GetComponent<Round2CollisionWarningUI>();
+            }
+
+            if (Mathf.Abs(currentSpeed) < minDamageSpeed)
+            {
+                if (collisionWarningUI != null)
+                {
+                    collisionWarningUI.TriggerLightContactWarning();
+                }
+                return;
+            }
+
+            if (Time.time - lastDamageTime < damageCooldown) return;
+
             lastDamageTime = Time.time;
             currentSpeed *= damageSpeedReduction;
 
             if (roundController != null)
             {
+                int durabilityBefore = roundController.currentBoatDurability;
                 roundController.ApplyDamage(collisionDamageAmount);
+                bool durabilityLost = roundController.currentBoatDurability < durabilityBefore;
+                if (durabilityLost && collisionWarningUI != null)
+                {
+                    collisionWarningUI.TriggerDamageWarning(roundController.currentBoatDurability <= 0);
+                }
+
                 if (roundController.currentState == global::Round2GameState.Playing)
                 {
-                    roundController.ShowFeedback("Va chạm mạnh! Độ bền thuyền -1.");
+                    roundController.ShowFeedback("Va chạm mạnh! Độ bền -1.");
                 }
             }
         }

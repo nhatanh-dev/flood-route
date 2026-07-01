@@ -140,17 +140,15 @@ namespace Round1
             if (rescueCounterNhaBa != null)
             {
                 int savedAtNhaBa = rescueController.Saved >= rescueController.TotalCivilians
-                    ? 2
-                    : Mathf.Clamp(rescueController.Saved, 0, 2);
-                rescueCounterNhaBa.SetCounts(2, rescueController.RemainingAtNhaBa, savedAtNhaBa);
+                    ? 1 : 1 - rescueController.RemainingAtNhaBa;
+                rescueCounterNhaBa.SetCounts(1, rescueController.RemainingAtNhaBa, savedAtNhaBa);
             }
 
             if (rescueCounterNhaTu != null)
             {
                 int savedAtNhaTu = rescueController.Saved >= rescueController.TotalCivilians
-                    ? 1
-                    : Mathf.Clamp(rescueController.Saved - 2, 0, 1);
-                rescueCounterNhaTu.SetCounts(1, rescueController.RemainingAtNhaTu, savedAtNhaTu);
+                    ? 2 : 2 - rescueController.RemainingAtNhaTu;
+                rescueCounterNhaTu.SetCounts(2, rescueController.RemainingAtNhaTu, savedAtNhaTu);
             }
 
             SetActive(nhaBaMarkerRoot, rescueController.RemainingAtNhaBa > 0);

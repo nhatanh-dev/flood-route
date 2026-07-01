@@ -70,17 +70,17 @@ public class Round2BoatInteraction : MonoBehaviour
                 {
                     if (currentZone.civiliansAvailable <= 0)
                     {
-                        txtInteractionPrompt.text = "Không còn người cần cứu ở đây";
+                        txtInteractionPrompt.text = "Không còn người cần cứu ở đây.";
                         txtInteractionPrompt.color = Color.gray;
                     }
                     else if (!speedOk)
                     {
-                        txtInteractionPrompt.text = "Dừng thuyền lại để cứu người";
+                        txtInteractionPrompt.text = "Dừng thuyền lại để cứu người.";
                         txtInteractionPrompt.color = Color.red;
                     }
                     else
                     {
-                        txtInteractionPrompt.text = "Nhấn E để cứu người";
+                        txtInteractionPrompt.text = "Nhấn E để cứu người.";
                         txtInteractionPrompt.color = Color.yellow;
                     }
                 }
@@ -88,17 +88,17 @@ public class Round2BoatInteraction : MonoBehaviour
                 {
                     if (roundController.currentCargo == 0)
                     {
-                        txtInteractionPrompt.text = "Chưa có người dân trên thuyền";
+                        txtInteractionPrompt.text = "Chưa có người dân trên thuyền.";
                         txtInteractionPrompt.color = Color.gray;
                     }
                     else if (!speedOk)
                     {
-                        txtInteractionPrompt.text = "Dừng thuyền lại để thả người";
+                        txtInteractionPrompt.text = "Dừng thuyền lại để thả người.";
                         txtInteractionPrompt.color = Color.red;
                     }
                     else
                     {
-                        txtInteractionPrompt.text = "Nhấn E để thả người";
+                        txtInteractionPrompt.text = "Nhấn E để thả người.";
                         txtInteractionPrompt.color = Color.green;
                     }
                 }
@@ -138,7 +138,7 @@ public class Round2BoatInteraction : MonoBehaviour
             int freeCapacity = roundController.boatCapacity - roundController.currentCargo;
             if (freeCapacity <= 0)
             {
-                roundController.ShowFeedback("Thuyền đã đầy, hãy đưa người dân đến điểm trú.");
+                roundController.ShowFeedback("Thuyền đã đầy. Hãy đưa người dân đến điểm trú.");
                 return;
             }
 
@@ -155,7 +155,7 @@ public class Round2BoatInteraction : MonoBehaviour
             }
             else
             {
-                roundController.SetObjective("Mục tiêu: Đi cứu người dân.");
+                roundController.SetObjective("Mục tiêu: Tìm nhà có tín hiệu cầu cứu.");
             }
         }
         else if (currentZone.zoneType == Round2ZoneType.Dropoff)
@@ -173,7 +173,7 @@ public class Round2BoatInteraction : MonoBehaviour
 
             if (roundController.civiliansSafe < roundController.totalCivilians)
             {
-                roundController.SetObjective("Mục tiêu: Tiếp tục cứu người dân.");
+                roundController.SetObjective("Mục tiêu: Tiếp tục tìm người mắc kẹt.");
             }
             else
             {

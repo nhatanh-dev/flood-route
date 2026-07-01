@@ -52,23 +52,49 @@ namespace Round1
             var rainAudio = FindObjectOfType<R1RainAmbienceController>();
             if (rainAudio != null) rainAudio.FadeToEndgameVolume();
 
+            var rc = FindObjectOfType<R1RealtimeRoundController>();
+            string statsStr = "";
+            if (rc != null)
+            {
+                int min = Mathf.FloorToInt(rc.currentTimeRemaining / 60);
+                int sec = Mathf.FloorToInt(rc.currentTimeRemaining % 60);
+                statsStr = $"Người dân an toàn: {rc.civiliansSafe}/{rc.totalCivilians}\n" +
+                           $"Độ bền còn lại: {rc.currentBoatDurability}/{rc.maxBoatDurability}\n" +
+                           $"Thời gian còn lại: {min:00}:{sec:00}";
+            }
+
             if (txtTitle != null)
             {
-                txtTitle.text = "HOÀN THÀNH";
+                txtTitle.text = "HOÀN THÀNH CỨU HỘ!";
                 ColorUtility.TryParseHtmlString("#FFD700", out Color gold);
                 txtTitle.color = gold;
             }
 
             if (txtSubtitle != null)
             {
-                txtSubtitle.text = "Bạn đã đưa tất cả người dân đến nơi an toàn.";
+                txtSubtitle.text = "Bạn đã đưa toàn bộ người dân đến nơi an toàn.";
                 txtSubtitle.gameObject.SetActive(true);
             }
 
             if (txtDetail != null)
             {
-                txtDetail.text = "Cứu hộ thành công: 3/3 người";
+                txtDetail.text = statsStr;
                 txtDetail.gameObject.SetActive(true);
+            }
+
+            var tmps = endgameRoot.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true);
+            foreach (var t in tmps)
+            {
+                if (t.text.Contains("Nhấn R") || t.text.Contains("R để"))
+                {
+                    t.text = "Nhấn R để chơi lại";
+                }
+            }
+
+            if (btnRetry != null)
+            {
+                var btnText = btnRetry.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+                if (btnText != null) btnText.text = "Chơi lại";
             }
         }
 
@@ -88,9 +114,20 @@ namespace Round1
             var rainAudio = FindObjectOfType<R1RainAmbienceController>();
             if (rainAudio != null) rainAudio.FadeToEndgameVolume();
 
+            var rc = FindObjectOfType<R1RealtimeRoundController>();
+            string statsStr = detail;
+            if (rc != null)
+            {
+                int min = Mathf.FloorToInt(rc.currentTimeRemaining / 60);
+                int sec = Mathf.FloorToInt(rc.currentTimeRemaining % 60);
+                statsStr = $"Người dân an toàn: {rc.civiliansSafe}/{rc.totalCivilians}\n" +
+                           $"Độ bền còn lại: {rc.currentBoatDurability}/{rc.maxBoatDurability}\n" +
+                           $"Thời gian còn lại: {min:00}:{sec:00}";
+            }
+
             if (txtTitle != null)
             {
-                txtTitle.text = "THẤT BẠI";
+                txtTitle.text = "NHIỆM VỤ THẤT BẠI";
                 ColorUtility.TryParseHtmlString("#FF3333", out Color red);
                 txtTitle.color = red;
             }
@@ -103,8 +140,23 @@ namespace Round1
 
             if (txtDetail != null)
             {
-                txtDetail.text = detail;
-                txtDetail.gameObject.SetActive(!string.IsNullOrEmpty(detail));
+                txtDetail.text = statsStr;
+                txtDetail.gameObject.SetActive(!string.IsNullOrEmpty(statsStr));
+            }
+
+            var tmps = endgameRoot.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true);
+            foreach (var t in tmps)
+            {
+                if (t.text.Contains("Nhấn R") || t.text.Contains("R để"))
+                {
+                    t.text = "Nhấn R để thử lại";
+                }
+            }
+
+            if (btnRetry != null)
+            {
+                var btnText = btnRetry.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+                if (btnText != null) btnText.text = "Thử lại";
             }
         }
 

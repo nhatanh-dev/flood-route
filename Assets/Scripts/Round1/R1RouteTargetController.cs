@@ -58,6 +58,15 @@ namespace Round1
                 if (go != null) turnText = go.GetComponent<TextMeshProUGUI>();
             }
 
+            var mapController = FindAnyObjectByType<R1PlanningMapController>();
+            if (mapController != null && !mapController.enableLegacyRouteSelection)
+            {
+                if (markerInstance != null)
+                    markerInstance.SetActive(false);
+                UpdateTurnHUD();
+                return;
+            }
+
             // Create or configure world-space marker
             EnsureMarkerExists();
 
@@ -76,6 +85,14 @@ namespace Round1
         // ── En-route: marker + arrival ────────────────────────────────────
         private void HandleEnRouteMarkerAndArrival()
         {
+            var mapController = FindAnyObjectByType<R1PlanningMapController>();
+            if (mapController != null && !mapController.enableLegacyRouteSelection)
+            {
+                if (markerInstance != null && markerInstance.activeSelf)
+                    markerInstance.SetActive(false);
+                return;
+            }
+
             var target = routeGraph.selectedTargetNode;
 
             if (target == null || target.worldAnchor == null)
@@ -210,7 +227,7 @@ namespace Round1
             UpdateTurnHUD();
 
             // Show instruction immediately
-            ShowInstruction($"Đi tới {target.displayName}.\nWASD: Lái thuyền | Tab: Bản đồ | E: Cứu/Thả | Q: Chờ");
+            ShowInstruction($"Đi tới {target.displayName}.\nWASD: Lái thuyền | Tab: Bản đồ | E: Cứu/Thả người | Q: Chờ");
         }
 
         // ── Marker ────────────────────────────────────────────────────────

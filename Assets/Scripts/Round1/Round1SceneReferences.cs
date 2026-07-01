@@ -56,6 +56,7 @@ namespace Round1
         public Transform civilianR1NhaBa1;
         public Transform civilianR1NhaBa2;
         public Transform civilianR1NhaTu1;
+        public Transform civilianR1NhaTu2;
 
         [Header("Debris X1")]
         public Transform x1DebrisVisualRoot;

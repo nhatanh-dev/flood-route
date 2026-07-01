@@ -113,8 +113,17 @@ public class Round2EndgameUI : MonoBehaviour
             string timeStr = $"{m:00}:{s:00}";
 
             txtStats.text = $"Người dân an toàn: {roundController.civiliansSafe}/{roundController.totalCivilians}\n" +
-                            $"Độ bền thuyền còn lại: {roundController.currentBoatDurability}/{roundController.maxBoatDurability}\n" +
+                            $"Độ bền còn lại: {roundController.currentBoatDurability}/{roundController.maxBoatDurability}\n" +
                             $"Thời gian còn lại: {timeStr}";
+        }
+
+        var tmps = overlayPanel.GetComponentsInChildren<TextMeshProUGUI>(true);
+        foreach (var t in tmps)
+        {
+            if (t.text.Contains("Nhấn R") || t.text.Contains("R để"))
+            {
+                t.text = isWin ? "Nhấn R để chơi lại" : "Nhấn R để thử lại";
+            }
         }
     }
 

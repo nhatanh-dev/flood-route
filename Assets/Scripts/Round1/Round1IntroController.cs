@@ -104,17 +104,17 @@ namespace Round1
             if (pageIndex == 0)
             {
                 SetText(
-                    "ROUND 1 — RESCUE MISSION",
-                    "RESCUE 3 CIVILIANS BEFORE THE 9 TURNS RUN OUT.\n\n• NHA BA: 2 CIVILIANS\n• NHA TU: 1 CIVILIAN\n\nBRING ALL 3 TO BAI DINH TO WIN.",
-                    "[SPACE / ENTER] NEXT",
+                    "VÒNG 1 — NHIỆM VỤ CỨU HỘ",
+                    "CỨU 3 NGƯỜI DÂN TRƯỚC KHI HẾT THỜI GIAN.\n\n• NHÀ BÀ: 1 NGƯỜI DÂN\n• NHÀ TƯ: 2 NGƯỜI DÂN\n\nĐƯA TẤT CẢ VỀ ĐIỂM TRÚ ĐỂ CHIẾN THẮNG.",
+                    "[SPACE / ENTER] TIẾP TỤC",
                     "1 / 2");
                 return;
             }
 
             SetText(
-                "CONTROLS & ROUTE TIPS",
-                "• MOVE: WASD / ARROW KEYS\n• WAIT: PRESS Q AT BEN PHU\n\nTHE BEN PHU → CAU TRE ROUTE MAY BE BLOCKED.\nWAIT AT BEN PHU UNTIL IT OPENS.\n\n• BAI DINH CAPACITY: 3\n• GO CAO CAPACITY: 2",
-                "[SPACE / ENTER] START",
+                "ĐIỀU KHIỂN & HƯỚNG DẪN",
+                "• DI CHUYỂN: WASD / MŨI TÊN\n• BẢN ĐỒ: TAB\n• CỨU/THẢ NGƯỜI: E\n\nHÃY LÁI THUYỀN CẨN THẬN ĐỂ TRÁNH VA CHẠM VÀ HỎNG THUYỀN.",
+                "[SPACE / ENTER] BẮT ĐẦU",
                 "2 / 2");
         }
 
