@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using UnityEngine.SceneManagement;
+using System.Collections;
 using TMPro;
 
 #if UNITY_EDITOR
@@ -80,6 +81,7 @@ public class GameFlowManager : MonoBehaviour
     [Tooltip("Exact name of the gameplay scene to load.")]
     [SerializeField] private string round1SceneName = "Round1_FirstPersonPrototype";
     [SerializeField] private bool isTransitioning = false;
+    [SerializeField] private MenuMusicManager menuMusicManager;
 
     // ─────────────────────────────────────────────────────────────────
 
@@ -89,6 +91,14 @@ public class GameFlowManager : MonoBehaviour
         BindButtons();
         SetupVideoPlayer();
         SetInitialState();
+    }
+
+    void Start()
+    {
+        if (menuMusicManager != null)
+        {
+            menuMusicManager.PlayFromStartWithFade();
+        }
     }
 
     // ── Validation ────────────────────────────────────────────────────
@@ -194,15 +204,38 @@ public class GameFlowManager : MonoBehaviour
     /// </summary>
     void OnBtnStartClicked()
     {
-        isTransitioning = false; // Reset cờ khi bắt đầu
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        if (videoPlayer != null)
+        {
+            videoPlayer.Prepare();
+        }
+
+        StartCoroutine(StartVideoTransitionRoutine());
+    }
+
+    private IEnumerator StartVideoTransitionRoutine()
+    {
         SetActive(buttonGroup,         false);
         SetActive(videoPanel,          true);
         SetActive(roundSelectionPanel, false);
         SetActive(instructionsPanel,    false);
 
+        if (menuMusicManager != null)
+        {
+            yield return menuMusicManager.PauseWithFade();
+        }
+
         if (videoPlayer != null)
         {
-            videoPlayer.Stop();
+            float prepareTimeout = 2.0f;
+            float elapsed = 0f;
+            while (!videoPlayer.isPrepared && elapsed < prepareTimeout)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                yield return null;
+            }
             videoPlayer.Play();
             Debug.Log("[GameFlowManager] Video started.");
         }
@@ -210,6 +243,8 @@ public class GameFlowManager : MonoBehaviour
         {
             OnSkipOrVideoEnd();
         }
+
+        isTransitioning = false;
     }
 
     private void OnSkipPressed()
@@ -235,6 +270,11 @@ public class GameFlowManager : MonoBehaviour
         SetActive(buttonGroup,         false);
         SetActive(instructionsPanel,    false);
 
+        if (menuMusicManager != null)
+        {
+            StartCoroutine(menuMusicManager.ResumeWithFade());
+        }
+
         Debug.Log("[GameFlowManager] Showing Round Selection panel.");
     }
 
@@ -252,6 +292,16 @@ public class GameFlowManager : MonoBehaviour
 
         if (isSceneLoading) return;
         isSceneLoading = true;
+
+        StartCoroutine(StartRound1TransitionRoutine());
+    }
+
+    private IEnumerator StartRound1TransitionRoutine()
+    {
+        if (menuMusicManager != null)
+        {
+            yield return menuMusicManager.StopWithFade();
+        }
 
         Debug.Log($"[GameFlowManager] Loading scene: {round1SceneName}");
         SceneManager.LoadScene(round1SceneName);
