@@ -252,47 +252,30 @@ namespace Round1
         {
             GameObject root = new GameObject(name);
             root.transform.SetParent(markerRoot.transform, false);
-            root.transform.position = position + Vector3.up * objectiveMarkerHeight;
+            root.transform.position = position + Vector3.up * 25f; // high enough to not clip
+            root.transform.rotation = Quaternion.Euler(90f, 0f, 0f); // flat
             markerTransform = root.transform;
-
-            GameObject icon = new GameObject(shelter ? "ShelterIcon" : "RescuePinIcon");
-            icon.transform.SetParent(root.transform, false);
-            MeshFilter filter = icon.AddComponent<MeshFilter>();
-            MeshRenderer renderer = icon.AddComponent<MeshRenderer>();
-            Mesh iconMesh = shelter ? CreateDiamondMesh(shelterMarkerDiameter) : CreatePinMesh(rescueMarkerDiameter);
-            filter.sharedMesh = iconMesh;
-            icon.transform.localRotation = Quaternion.identity;
-            renderer.sharedMaterial = material;
-            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            renderer.receiveShadows = false;
-
-            GameObject outline = new GameObject("IconOutline");
-            outline.transform.SetParent(root.transform, false);
-            outline.transform.localPosition = new Vector3(0f, -0.01f, 0f);
-            outline.transform.localScale = Vector3.one * 1.18f;
-            MeshFilter outlineFilter = outline.AddComponent<MeshFilter>();
-            MeshRenderer outlineRenderer = outline.AddComponent<MeshRenderer>();
-            outlineFilter.sharedMesh = iconMesh;
-            outlineRenderer.sharedMaterial = outlineMaterial;
-            outlineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            outlineRenderer.receiveShadows = false;
-            outline.transform.SetAsFirstSibling();
 
             GameObject labelGo = new GameObject("Label");
             labelGo.transform.SetParent(root.transform, false);
-            labelGo.transform.localPosition = new Vector3(0f, 0.04f, labelHeight);
-            labelGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            labelGo.transform.localPosition = Vector3.zero;
+            labelGo.transform.localRotation = Quaternion.identity;
             label = labelGo.AddComponent<TextMeshPro>();
             label.alignment = TextAlignmentOptions.Center;
-            label.fontSize = 0.5f;
+            label.fontSize = 20f; // Adjusted font size for world space visibility
+            label.lineSpacing = -20f;
             label.enableWordWrapping = false;
-            label.text = "Cần cứu";
-            label.color = RescueColor;
+            
+            if (shelter) {
+                label.text = "<size=400%><color=#44FF88>♦</color></size>\n<size=150%><color=#FFFFFF>Điểm trú</color></size>";
+            } else {
+                label.text = "<size=400%><color=#FF8800>●</color></size>\n<size=150%><color=#FFFFFF>Cần cứu</color></size>";
+            }
             label.outlineWidth = 0.18f;
             label.outlineColor = new Color(0.02f, 0.025f, 0.02f, 0.95f);
-
+            
             SetIgnoreRaycastRecursive(root);
-            return renderer;
+            return null;
         }
 
         
