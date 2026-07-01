@@ -207,11 +207,6 @@ public class GameFlowManager : MonoBehaviour
         if (isTransitioning) return;
         isTransitioning = true;
 
-        if (videoPlayer != null)
-        {
-            videoPlayer.Prepare();
-        }
-
         StartCoroutine(StartVideoTransitionRoutine());
     }
 
@@ -222,6 +217,16 @@ public class GameFlowManager : MonoBehaviour
         SetActive(roundSelectionPanel, false);
         SetActive(instructionsPanel,    false);
 
+        if (btnSkip != null)
+            btnSkip.interactable = false;
+
+        if (videoPlayer != null)
+        {
+            videoPlayer.enabled = true;
+            videoPlayer.Prepare();
+        }
+
+        // Preparation continues asynchronously while the menu music fades out.
         if (menuMusicManager != null)
         {
             yield return menuMusicManager.PauseWithFade();
@@ -229,14 +234,13 @@ public class GameFlowManager : MonoBehaviour
 
         if (videoPlayer != null)
         {
-            float prepareTimeout = 2.0f;
-            float elapsed = 0f;
-            while (!videoPlayer.isPrepared && elapsed < prepareTimeout)
+            while (!videoPlayer.isPrepared)
             {
-                elapsed += Time.unscaledDeltaTime;
                 yield return null;
             }
             videoPlayer.Play();
+            if (btnSkip != null)
+                btnSkip.interactable = true;
             Debug.Log("[GameFlowManager] Video started.");
         }
         else

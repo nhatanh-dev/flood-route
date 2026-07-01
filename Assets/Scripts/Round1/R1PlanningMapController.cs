@@ -62,6 +62,7 @@ namespace Round1
 
         // ── Gameplay HUD Elements ────────────────────────────────────────
         private List<GameObject> gameplayHudElements = new List<GameObject>();
+        private readonly Dictionary<GameObject, bool> gameplayHudOriginalStates = new Dictionary<GameObject, bool>();
         private readonly List<R1ScreenRainOverlayController> rainOverlays = new List<R1ScreenRainOverlayController>();
         private readonly Dictionary<R1ScreenRainOverlayController, float> rainOverlayOriginalAlphas = new Dictionary<R1ScreenRainOverlayController, float>();
 
@@ -183,6 +184,7 @@ namespace Round1
         private void CollectGameplayHudElements()
         {
             gameplayHudElements.Clear();
+            gameplayHudOriginalStates.Clear();
             var allTransforms = FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (var t in allTransforms)
             {
@@ -192,28 +194,11 @@ namespace Round1
                 }
 
                 string objectName = t.name;
-                if (objectName.StartsWith("R1_Planning") ||
-                    objectName.StartsWith("R1_Orientation") ||
-                    objectName == "R1_PlanningMapCamera")
-                {
-                    continue;
-                }
-
                 bool isGameplayHud =
-                    objectName.StartsWith("HUD_Group_Gameplay") ||
-                    objectName == "TXT_R1_Shared_Objective" ||
-                    objectName == "TXT_R1_Shared_Message" ||
-                    objectName.Contains("GameplayHUD") ||
-                    objectName.Contains("Gameplay_HUD") ||
-                    objectName.Contains("HUD_Gameplay") ||
-                    objectName.Contains("HUD_Group") ||
-                    objectName.Contains("ObjectivePanel") ||
-                    objectName.Contains("Objective_Text") ||
-                    objectName.Contains("TXT_Objective") ||
-                    objectName.Contains("TXT_Timer") ||
-                    objectName.Contains("TXT_Durability") ||
-                    objectName.Contains("TXT_Cargo") ||
-                    objectName.Contains("TXT_Saved");
+                    objectName == "R1_Shared_HUD_Panel" ||
+                    objectName == "R1_Shared_Message_Panel" ||
+                    objectName == "PNL_R1_InteractionPrompt" ||
+                    objectName == "PNL_R1_ContextToast";
 
                 if (isGameplayHud && !gameplayHudElements.Contains(t.gameObject))
                 {
@@ -241,10 +226,23 @@ namespace Round1
 
         private void SetGameplayHudVisible(bool visible)
         {
-            foreach (var go in gameplayHudElements)
+            if (!visible)
             {
-                if (go != null) go.SetActive(visible);
+                gameplayHudOriginalStates.Clear();
+                foreach (var go in gameplayHudElements)
+                {
+                    if (go == null) continue;
+                    gameplayHudOriginalStates[go] = go.activeSelf;
+                    go.SetActive(false);
+                }
+                return;
             }
+
+            foreach (var pair in gameplayHudOriginalStates)
+            {
+                if (pair.Key != null) pair.Key.SetActive(pair.Value);
+            }
+            gameplayHudOriginalStates.Clear();
         }
 
         private void SetPlanningUiVisible(bool visible)
