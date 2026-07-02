@@ -28,6 +28,7 @@ public class Round2EndgameUI : MonoBehaviour
 
     [Header("Optional")]
     public GameObject gameplayHUDCanvas;
+    [SerializeField] private UIAudioPlayer uiAudioPlayer;
 
     private bool overlayActive = false;
     private static readonly Color VictoryAccent = new Color(0.35f, 0.50f, 0.41f, 1f); // #5A8069 (slightly darker victory accent)
@@ -66,8 +67,8 @@ public class Round2EndgameUI : MonoBehaviour
 
         if (btnRetry != null)
         {
-            btnRetry.onClick.RemoveListener(OnRetryClicked);
-            btnRetry.onClick.AddListener(OnRetryClicked);
+            btnRetry.onClick.RemoveListener(OnRetryButtonClicked);
+            btnRetry.onClick.AddListener(OnRetryButtonClicked);
         }
 
         if (btnViewCampaignEnding != null)
@@ -84,8 +85,8 @@ public class Round2EndgameUI : MonoBehaviour
 
         if (btnCampaignRetry != null)
         {
-            btnCampaignRetry.onClick.RemoveListener(OnRetryClicked);
-            btnCampaignRetry.onClick.AddListener(OnRetryClicked);
+            btnCampaignRetry.onClick.RemoveListener(OnRetryButtonClicked);
+            btnCampaignRetry.onClick.AddListener(OnRetryButtonClicked);
         }
 
         ApplyButtonRole(btnViewCampaignEnding, true);
@@ -107,13 +108,16 @@ public class Round2EndgameUI : MonoBehaviour
             Keyboard kb = Keyboard.current;
             if (kb != null && kb.rKey.wasPressedThisFrame)
             {
-                OnRetryClicked();
+                RestartCurrentScene();
             }
         }
     }
 
     private void ShowOverlay()
     {
+        if (overlayActive)
+            return;
+
         overlayActive = true;
 
         if (gameplayHUDCanvas != null)
@@ -139,6 +143,11 @@ public class Round2EndgameUI : MonoBehaviour
         }
 
         bool isWin = roundController.currentState == Round2GameState.Win;
+        if (isWin)
+            uiAudioPlayer?.PlayVictory();
+        else
+            uiAudioPlayer?.PlayDefeat();
+
         if (btnViewCampaignEnding != null)
         {
             btnViewCampaignEnding.gameObject.SetActive(isWin);
@@ -259,7 +268,13 @@ public class Round2EndgameUI : MonoBehaviour
             outcomeAccent.color = color;
     }
 
-    private void OnRetryClicked()
+    private void OnRetryButtonClicked()
+    {
+        uiAudioPlayer?.PlayClick();
+        RestartCurrentScene();
+    }
+
+    private void RestartCurrentScene()
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -269,6 +284,8 @@ public class Round2EndgameUI : MonoBehaviour
     {
         if (roundController == null || roundController.currentState != Round2GameState.Win)
             return;
+
+        uiAudioPlayer?.PlayClick();
 
         if (resultCard != null)
             resultCard.SetActive(false);
@@ -285,6 +302,7 @@ public class Round2EndgameUI : MonoBehaviour
             return;
         }
 
+        uiAudioPlayer?.PlayClick();
         Time.timeScale = 1f;
         SceneManager.LoadScene(mainMenuSceneName);
     }
@@ -292,7 +310,7 @@ public class Round2EndgameUI : MonoBehaviour
     private void OnDestroy()
     {
         if (btnRetry != null)
-            btnRetry.onClick.RemoveListener(OnRetryClicked);
+            btnRetry.onClick.RemoveListener(OnRetryButtonClicked);
 
         if (btnViewCampaignEnding != null)
             btnViewCampaignEnding.onClick.RemoveListener(OnViewCampaignEndingClicked);
@@ -301,7 +319,7 @@ public class Round2EndgameUI : MonoBehaviour
             btnCampaignMenu.onClick.RemoveListener(OnCampaignMenuClicked);
 
         if (btnCampaignRetry != null)
-            btnCampaignRetry.onClick.RemoveListener(OnRetryClicked);
+            btnCampaignRetry.onClick.RemoveListener(OnRetryButtonClicked);
     }
 
     private void ApplyButtonRole(Button button, bool primary)

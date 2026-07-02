@@ -8,6 +8,7 @@ public sealed class Round2MissionBriefingController : MonoBehaviour
     [SerializeField] private Button startRound2Button;
     [SerializeField] private string round2GameplaySceneName = "Round2_RealtimePrototype";
     [SerializeField] private MenuMusicManager menuMusicManager;
+    [SerializeField] private UIAudioPlayer uiAudioPlayer;
 
     private bool isSceneLoading;
 
@@ -39,6 +40,7 @@ public sealed class Round2MissionBriefingController : MonoBehaviour
         isSceneLoading = true;
         startRound2Button.interactable = false;
         Time.timeScale = 1f;
+        uiAudioPlayer?.PlayMissionStart();
 
         StartCoroutine(StartRound2TransitionRoutine());
     }

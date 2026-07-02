@@ -31,9 +31,11 @@ namespace Round1
 
         [Header("Campaign Flow")]
         [SerializeField] private string round2BriefingSceneName = "Round2_MissionBriefing";
+        [SerializeField] private UIAudioPlayer uiAudioPlayer;
 
         private R1RealtimeRoundController roundController;
         private bool isSceneLoading;
+        private bool outcomeSoundPlayed;
         private static readonly Color VictoryAccent = new Color(0.35f, 0.50f, 0.41f, 1f); // #5A8069 (slightly darker victory accent)
         private static readonly Color DefeatAccent = new Color(0.55f, 0.27f, 0.23f, 1f); // #8C453A (slightly darker defeat accent)
         private static readonly Color VictoryTitle = new Color(0.47f, 0.66f, 0.54f, 1f); // #78A88B (brightened muted sage green)
@@ -70,6 +72,7 @@ namespace Round1
 
         public void ShowWin()
         {
+            PlayOutcomeSound(true);
             HideGameplayHUD();
             
             if (endgameRoot != null)
@@ -119,6 +122,7 @@ namespace Round1
 
         public void ShowLose(string reason, string detail)
         {
+            PlayOutcomeSound(false);
             HideGameplayHUD();
             
             if (endgameRoot != null)
@@ -202,6 +206,7 @@ namespace Round1
                 return;
 
             isSceneLoading = true;
+            uiAudioPlayer?.PlayClick();
             SetActionButtonsInteractable(false);
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -213,6 +218,7 @@ namespace Round1
                 return;
 
             isSceneLoading = true;
+            uiAudioPlayer?.PlayClick();
             SetActionButtonsInteractable(false);
             Time.timeScale = 1f;
             SceneManager.LoadScene(round2BriefingSceneName);
@@ -259,6 +265,18 @@ namespace Round1
             colors.pressedColor = primary ? PrimaryPressed : SecondaryPressed;
             colors.selectedColor = colors.highlightedColor;
             button.colors = colors;
+        }
+
+        private void PlayOutcomeSound(bool victory)
+        {
+            if (outcomeSoundPlayed)
+                return;
+
+            outcomeSoundPlayed = true;
+            if (victory)
+                uiAudioPlayer?.PlayVictory();
+            else
+                uiAudioPlayer?.PlayDefeat();
         }
     }
 }

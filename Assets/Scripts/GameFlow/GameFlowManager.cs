@@ -82,6 +82,7 @@ public class GameFlowManager : MonoBehaviour
     [SerializeField] private string round1SceneName = "Round1_FirstPersonPrototype";
     [SerializeField] private bool isTransitioning = false;
     [SerializeField] private MenuMusicManager menuMusicManager;
+    [SerializeField] private UIAudioPlayer uiAudioPlayer;
 
     // ─────────────────────────────────────────────────────────────────
 
@@ -151,7 +152,7 @@ public class GameFlowManager : MonoBehaviour
         // Bind
         btnStart      .onClick.AddListener(OnBtnStartClicked);
         btnQuit       .onClick.AddListener(OnBtnQuitClicked);
-        btnSkip       .onClick.AddListener(OnSkipOrVideoEnd);
+        btnSkip       .onClick.AddListener(OnSkipPressed);
         btnStartRound1.onClick.AddListener(OnStartRound1Clicked);
         btnPreviousInstructionPage.onClick.AddListener(OnBtnPreviousInstructionPageClicked);
         btnNextInstructionPage.onClick.AddListener(OnBtnNextInstructionPageClicked);
@@ -206,6 +207,7 @@ public class GameFlowManager : MonoBehaviour
     {
         if (isTransitioning) return;
         isTransitioning = true;
+        uiAudioPlayer?.PlayClick();
 
         StartCoroutine(StartVideoTransitionRoutine());
     }
@@ -253,6 +255,9 @@ public class GameFlowManager : MonoBehaviour
 
     private void OnSkipPressed()
     {
+        if (isTransitioning) return;
+
+        uiAudioPlayer?.PlayClick();
         OnSkipOrVideoEnd();
     }
 
@@ -296,6 +301,7 @@ public class GameFlowManager : MonoBehaviour
 
         if (isSceneLoading) return;
         isSceneLoading = true;
+        uiAudioPlayer?.PlayMissionStart();
 
         StartCoroutine(StartRound1TransitionRoutine());
     }
@@ -316,6 +322,7 @@ public class GameFlowManager : MonoBehaviour
         if (isTransitioning) return;
 
         isTransitioning = true;
+        uiAudioPlayer?.PlayClick();
         SetActive(buttonGroup,         false);
         SetActive(videoPanel,          false);
         SetActive(roundSelectionPanel, false);
@@ -325,6 +332,7 @@ public class GameFlowManager : MonoBehaviour
 
     void OnBtnCloseInstructionsClicked()
     {
+        uiAudioPlayer?.PlayClick();
         SetActive(instructionsPanel,    false);
         SetActive(videoPanel,           false);
         SetActive(roundSelectionPanel,  false);
@@ -336,11 +344,13 @@ public class GameFlowManager : MonoBehaviour
 
     void OnBtnNextInstructionPageClicked()
     {
+        uiAudioPlayer?.PlayClick();
         ShowInstructionPage(currentInstructionPage + 1);
     }
 
     void OnBtnPreviousInstructionPageClicked()
     {
+        uiAudioPlayer?.PlayClick();
         ShowInstructionPage(currentInstructionPage - 1);
     }
 
@@ -369,6 +379,7 @@ public class GameFlowManager : MonoBehaviour
     /// </summary>
     void OnBtnQuitClicked()
     {
+        uiAudioPlayer?.PlayClick();
         Debug.Log("[GameFlowManager] Quitting application.");
 
 #if UNITY_EDITOR
