@@ -7843,14 +7843,12 @@ MonoBehaviour:
   sceneReferences: {fileID: 0}
   rescueController: {fileID: 0}
   realtimeController: {fileID: 0}
-  playerMarkerSize: 0.9
-  playerMarkerHeight: 2.9
-  objectiveMarkerHeight: 2.55
-  labelHeight: 0.62
-  rescueMarkerDiameter: 0.82
-  shelterMarkerDiameter: 0.98
+  rescueIconSize: {x: 48, y: 58}
+  shelterIconSize: {x: 54, y: 58}
+  labelOffset: {x: 0, y: -38}
+  worldOffset: {x: 0, y: 1.4, z: 0}
   shelterPulseSpeed: 2.2
-  shelterCargoPulseScale: 0.12
+  shelterCargoPulseScale: 0.08
 --- !u!1 &128601356 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5032137256400794144, guid: 0d60a9157fc09ee4f9c059a176c8d1da, type: 3}
@@ -77116,7 +77114,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: ddb4b6fdfc3cd614b9e059fa67af766e, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0
   m_Pitch: 1
   Loop: 0
   Mute: 0
