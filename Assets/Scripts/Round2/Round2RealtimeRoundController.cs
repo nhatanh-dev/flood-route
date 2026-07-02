@@ -1,5 +1,7 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
+using System.Collections;
 
 public enum Round2GameState
 {
@@ -38,7 +40,13 @@ public class Round2RealtimeRoundController : MonoBehaviour
     public TextMeshProUGUI txtDurability;
     public TextMeshProUGUI txtCargo;
     public TextMeshProUGUI txtSafe;
+    public TextMeshProUGUI txtRemaining;
     public TextMeshProUGUI txtObjective;
+    public TextMeshProUGUI txtFeedback;
+
+    private CanvasGroup feedbackGroup;
+    private Image feedbackAccent;
+    private Coroutine feedbackRoutine;
 
     private void Start()
     {
@@ -48,6 +56,19 @@ public class Round2RealtimeRoundController : MonoBehaviour
         safe = 0;
         currentState = Round2GameState.Playing;
         currentObjectiveText = "Mục tiêu: Tìm nhà có tín hiệu cầu cứu.";
+
+        if (txtRemaining == null) txtRemaining = FindText("TXT_R2_Remaining");
+        if (txtFeedback == null) txtFeedback = FindText("TXT_R2_ContextToast");
+        if (txtFeedback != null)
+        {
+            Transform feedbackRoot = txtFeedback.transform.parent;
+            feedbackGroup = feedbackRoot != null
+                ? feedbackRoot.GetComponent<CanvasGroup>()
+                : null;
+            feedbackAccent = FindImage("IMG_R2_ToastAccent");
+            if (feedbackRoot != null)
+                feedbackRoot.gameObject.SetActive(false);
+        }
 
         UpdateHUD();
     }
@@ -72,10 +93,11 @@ public class Round2RealtimeRoundController : MonoBehaviour
     private void UpdateHUD()
     {
         UpdateTimerHUD();
-        if (txtDurability != null) txtDurability.text = $"Độ bền: {boatDurability}/{maxBoatDurability}";
-        if (txtCargo != null) txtCargo.text = $"Trên thuyền: {cargo}/{boatCapacity}";
-        if (txtSafe != null) txtSafe.text = $"An toàn: {safe}/{totalCivilians}";
-        if (txtObjective != null) txtObjective.text = currentObjectiveText;
+        if (txtDurability != null) txtDurability.text = $"{boatDurability}/{maxBoatDurability}";
+        if (txtCargo != null) txtCargo.text = $"{cargo}/{boatCapacity}";
+        if (txtSafe != null) txtSafe.text = $"{safe}/{totalCivilians}";
+        if (txtRemaining != null) txtRemaining.text = Mathf.Max(0, totalCivilians - safe).ToString();
+        if (txtObjective != null) txtObjective.text = FormatObjective(currentObjectiveText);
     }
 
     private void UpdateTimerHUD()
@@ -84,7 +106,7 @@ public class Round2RealtimeRoundController : MonoBehaviour
         {
             int minutes = Mathf.FloorToInt(roundTimer / 60f);
             int seconds = Mathf.FloorToInt(roundTimer % 60f);
-            txtTimer.text = $"Thời gian: {minutes:00}:{seconds:00}";
+            txtTimer.text = $"{minutes:00}:{seconds:00}";
         }
     }
 
@@ -156,25 +178,73 @@ public class Round2RealtimeRoundController : MonoBehaviour
     public void ShowFeedback(string message)
     {
         if (currentState != Round2GameState.Playing) return;
-        StartCoroutine(FeedbackCoroutine(message, 2f));
+        if (feedbackRoutine != null) StopCoroutine(feedbackRoutine);
+        feedbackRoutine = StartCoroutine(FeedbackCoroutine(message, 3f));
     }
 
-    private System.Collections.IEnumerator FeedbackCoroutine(string msg, float duration)
+    private IEnumerator FeedbackCoroutine(string msg, float duration)
     {
-        string oldText = currentObjectiveText;
-        if (txtObjective != null)
+        if (txtFeedback == null || feedbackGroup == null) yield break;
+
+        var root = txtFeedback.transform.parent.gameObject;
+        root.SetActive(true);
+        txtFeedback.text = msg;
+
+        bool critical = msg.Contains("hỏng") || msg.Contains("đầy") ||
+                        msg.Contains("Dừng") || msg.Contains("Hết") ||
+                        msg.Contains("Va chạm");
+        if (feedbackAccent != null)
+            feedbackAccent.color = critical
+                ? new Color(0.52f, 0.28f, 0.20f, 1f)
+                : new Color(0.67f, 0.52f, 0.24f, 1f);
+
+        feedbackGroup.alpha = 0f;
+        const float fadeIn = 0.16f;
+        const float fadeOut = 0.28f;
+        float elapsed = 0f;
+        while (elapsed < fadeIn)
         {
-            txtObjective.text = msg;
-            txtObjective.color = UnityEngine.Color.red;
+            elapsed += Time.unscaledDeltaTime;
+            feedbackGroup.alpha = Mathf.Clamp01(elapsed / fadeIn);
+            yield return null;
         }
-        
-        yield return new WaitForSeconds(duration);
-        
-        if (currentState == Round2GameState.Playing && txtObjective != null)
+
+        feedbackGroup.alpha = 1f;
+        yield return new WaitForSecondsRealtime(duration);
+
+        elapsed = 0f;
+        while (elapsed < fadeOut)
         {
-            txtObjective.text = oldText;
-            txtObjective.color = UnityEngine.Color.yellow;
+            elapsed += Time.unscaledDeltaTime;
+            feedbackGroup.alpha = 1f - Mathf.Clamp01(elapsed / fadeOut);
+            yield return null;
         }
+
+        feedbackGroup.alpha = 0f;
+        root.SetActive(false);
+        feedbackRoutine = null;
+    }
+
+    private static string FormatObjective(string value)
+    {
+        const string prefix = "Mục tiêu:";
+        return value != null && value.StartsWith(prefix)
+            ? value.Substring(prefix.Length).Trim()
+            : value;
+    }
+
+    private static TextMeshProUGUI FindText(string objectName)
+    {
+        foreach (var text in FindObjectsByType<TextMeshProUGUI>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (text.name == objectName && text.gameObject.scene.isLoaded) return text;
+        return null;
+    }
+
+    private static Image FindImage(string objectName)
+    {
+        foreach (var image in FindObjectsByType<Image>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (image.name == objectName && image.gameObject.scene.isLoaded) return image;
+        return null;
     }
 
     public bool IsPlaying()

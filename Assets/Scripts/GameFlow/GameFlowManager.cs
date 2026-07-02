@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using UnityEngine.SceneManagement;
+using System.Collections;
 using TMPro;
 
 #if UNITY_EDITOR
@@ -80,6 +81,8 @@ public class GameFlowManager : MonoBehaviour
     [Tooltip("Exact name of the gameplay scene to load.")]
     [SerializeField] private string round1SceneName = "Round1_FirstPersonPrototype";
     [SerializeField] private bool isTransitioning = false;
+    [SerializeField] private MenuMusicManager menuMusicManager;
+    [SerializeField] private UIAudioPlayer uiAudioPlayer;
 
     // ─────────────────────────────────────────────────────────────────
 
@@ -89,6 +92,14 @@ public class GameFlowManager : MonoBehaviour
         BindButtons();
         SetupVideoPlayer();
         SetInitialState();
+    }
+
+    void Start()
+    {
+        if (menuMusicManager != null)
+        {
+            menuMusicManager.PlayFromStartWithFade();
+        }
     }
 
     // ── Validation ────────────────────────────────────────────────────
@@ -141,7 +152,7 @@ public class GameFlowManager : MonoBehaviour
         // Bind
         btnStart      .onClick.AddListener(OnBtnStartClicked);
         btnQuit       .onClick.AddListener(OnBtnQuitClicked);
-        btnSkip       .onClick.AddListener(OnSkipOrVideoEnd);
+        btnSkip       .onClick.AddListener(OnSkipPressed);
         btnStartRound1.onClick.AddListener(OnStartRound1Clicked);
         btnPreviousInstructionPage.onClick.AddListener(OnBtnPreviousInstructionPageClicked);
         btnNextInstructionPage.onClick.AddListener(OnBtnNextInstructionPageClicked);
@@ -194,26 +205,59 @@ public class GameFlowManager : MonoBehaviour
     /// </summary>
     void OnBtnStartClicked()
     {
-        isTransitioning = false; // Reset cờ khi bắt đầu
+        if (isTransitioning) return;
+        isTransitioning = true;
+        uiAudioPlayer?.PlayClick();
+
+        StartCoroutine(StartVideoTransitionRoutine());
+    }
+
+    private IEnumerator StartVideoTransitionRoutine()
+    {
         SetActive(buttonGroup,         false);
         SetActive(videoPanel,          true);
         SetActive(roundSelectionPanel, false);
         SetActive(instructionsPanel,    false);
 
+        if (btnSkip != null)
+            btnSkip.interactable = false;
+
         if (videoPlayer != null)
         {
-            videoPlayer.Stop();
+            videoPlayer.enabled = true;
+            videoPlayer.Prepare();
+        }
+
+        // Preparation continues asynchronously while the menu music fades out.
+        if (menuMusicManager != null)
+        {
+            yield return menuMusicManager.PauseWithFade();
+        }
+
+        if (videoPlayer != null)
+        {
+            while (!videoPlayer.isPrepared)
+            {
+                yield return null;
+            }
             videoPlayer.Play();
+            if (btnSkip != null)
+                btnSkip.interactable = true;
             Debug.Log("[GameFlowManager] Video started.");
         }
         else
         {
             OnSkipOrVideoEnd();
         }
+
+        isTransitioning = false;
     }
 
     private void OnSkipPressed()
     {
+        if (isTransitioning) return;
+
+        uiAudioPlayer?.PlayClick();
         OnSkipOrVideoEnd();
     }
 
@@ -235,6 +279,11 @@ public class GameFlowManager : MonoBehaviour
         SetActive(buttonGroup,         false);
         SetActive(instructionsPanel,    false);
 
+        if (menuMusicManager != null)
+        {
+            StartCoroutine(menuMusicManager.ResumeWithFade());
+        }
+
         Debug.Log("[GameFlowManager] Showing Round Selection panel.");
     }
 
@@ -252,6 +301,17 @@ public class GameFlowManager : MonoBehaviour
 
         if (isSceneLoading) return;
         isSceneLoading = true;
+        uiAudioPlayer?.PlayMissionStart();
+
+        StartCoroutine(StartRound1TransitionRoutine());
+    }
+
+    private IEnumerator StartRound1TransitionRoutine()
+    {
+        if (menuMusicManager != null)
+        {
+            yield return menuMusicManager.StopWithFade();
+        }
 
         Debug.Log($"[GameFlowManager] Loading scene: {round1SceneName}");
         SceneManager.LoadScene(round1SceneName);
@@ -262,6 +322,7 @@ public class GameFlowManager : MonoBehaviour
         if (isTransitioning) return;
 
         isTransitioning = true;
+        uiAudioPlayer?.PlayClick();
         SetActive(buttonGroup,         false);
         SetActive(videoPanel,          false);
         SetActive(roundSelectionPanel, false);
@@ -271,6 +332,7 @@ public class GameFlowManager : MonoBehaviour
 
     void OnBtnCloseInstructionsClicked()
     {
+        uiAudioPlayer?.PlayClick();
         SetActive(instructionsPanel,    false);
         SetActive(videoPanel,           false);
         SetActive(roundSelectionPanel,  false);
@@ -282,11 +344,13 @@ public class GameFlowManager : MonoBehaviour
 
     void OnBtnNextInstructionPageClicked()
     {
+        uiAudioPlayer?.PlayClick();
         ShowInstructionPage(currentInstructionPage + 1);
     }
 
     void OnBtnPreviousInstructionPageClicked()
     {
+        uiAudioPlayer?.PlayClick();
         ShowInstructionPage(currentInstructionPage - 1);
     }
 
@@ -315,6 +379,7 @@ public class GameFlowManager : MonoBehaviour
     /// </summary>
     void OnBtnQuitClicked()
     {
+        uiAudioPlayer?.PlayClick();
         Debug.Log("[GameFlowManager] Quitting application.");
 
 #if UNITY_EDITOR

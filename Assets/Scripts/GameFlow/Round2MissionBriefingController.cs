@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -6,6 +7,8 @@ public sealed class Round2MissionBriefingController : MonoBehaviour
 {
     [SerializeField] private Button startRound2Button;
     [SerializeField] private string round2GameplaySceneName = "Round2_RealtimePrototype";
+    [SerializeField] private MenuMusicManager menuMusicManager;
+    [SerializeField] private UIAudioPlayer uiAudioPlayer;
 
     private bool isSceneLoading;
 
@@ -21,6 +24,14 @@ public sealed class Round2MissionBriefingController : MonoBehaviour
         startRound2Button.onClick.AddListener(StartRound2);
     }
 
+    private void Start()
+    {
+        if (menuMusicManager != null)
+        {
+            menuMusicManager.PlayFromStartWithFade();
+        }
+    }
+
     public void StartRound2()
     {
         if (isSceneLoading || string.IsNullOrWhiteSpace(round2GameplaySceneName))
@@ -29,6 +40,18 @@ public sealed class Round2MissionBriefingController : MonoBehaviour
         isSceneLoading = true;
         startRound2Button.interactable = false;
         Time.timeScale = 1f;
+        uiAudioPlayer?.PlayMissionStart();
+
+        StartCoroutine(StartRound2TransitionRoutine());
+    }
+
+    private IEnumerator StartRound2TransitionRoutine()
+    {
+        if (menuMusicManager != null)
+        {
+            yield return menuMusicManager.StopWithFade();
+        }
+
         SceneManager.LoadScene(round2GameplaySceneName);
     }
 }
