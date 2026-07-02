@@ -28,8 +28,8 @@ namespace Round1
 
         private GameObject canvasRoot;
         private GameObject markerRoot;
-        
-        
+
+
         private Transform nhaBaMarker;
         private Transform nhaTuMarker;
         private Transform shelterMarker;
@@ -60,6 +60,16 @@ namespace Round1
         private Sprite shelterSprite;
         private Sprite shadowSprite;
         private bool isVisible;
+
+        private Vector3 nhaBaBaseScale = Vector3.one;
+        private Vector3 nhaTuBaseScale = Vector3.one;
+        private Vector3 shelterBaseScale = Vector3.one;
+        private Vector3 playerMarkerBaseScale = Vector3.one;
+
+        private static readonly Color BoatColorMap = new Color(1f, 0.86f, 0.18f, 1f);
+        private static readonly Color RescueColorMap = new Color(1f, 0.48f, 0.12f, 1f);
+        private static readonly Color ShelterColorMap = new Color(0.22f, 0.90f, 0.37f, 1f);
+        private static readonly Color ClearedColorMap = new Color(0.57f, 0.59f, 0.58f, 1f);
 
         private static readonly Color RescueColor = new Color(0.95f, 0.36f, 0.10f, 1f);
         private static readonly Color ShelterColor = new Color(0.20f, 0.72f, 0.36f, 1f);
@@ -151,125 +161,278 @@ namespace Round1
                 return;
             }
 
-            canvasRoot = new GameObject("R1_PlanningMapCanvas");
-            Canvas canvas = canvasRoot.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 60;
+            canvasRoot = GameObject.Find("R1_PlanningMapCanvas");
+            if (canvasRoot == null)
+            {
+                canvasRoot = new GameObject("R1_PlanningMapCanvas");
+                Canvas canvas = canvasRoot.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.sortingOrder = 60;
 
-            CanvasScaler scaler = canvasRoot.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+                CanvasScaler scaler = canvasRoot.AddComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1920f, 1080f);
+                scaler.matchWidthOrHeight = 0.5f;
 
-            GraphicRaycaster raycaster = canvasRoot.AddComponent<GraphicRaycaster>();
-            raycaster.enabled = false;
+                GraphicRaycaster raycaster = canvasRoot.AddComponent<GraphicRaycaster>();
+                raycaster.enabled = false;
 
-            CanvasGroup canvasGroup = canvasRoot.AddComponent<CanvasGroup>();
-            canvasGroup.interactable = false;
-            canvasGroup.blocksRaycasts = false;
+                CanvasGroup canvasGroup = canvasRoot.AddComponent<CanvasGroup>();
+                canvasGroup.interactable = false;
+                canvasGroup.blocksRaycasts = false;
+            }
 
-            GameObject panel = new GameObject("R1_PlanningUI_Group");
-            panel.transform.SetParent(canvasRoot.transform, false);
-            RectTransform panelRect = panel.AddComponent<RectTransform>();
-            panelRect.anchorMin = Vector2.zero;
-            panelRect.anchorMax = Vector2.one;
-            panelRect.offsetMin = Vector2.zero;
-            panelRect.offsetMax = Vector2.zero;
+            Transform panelT = canvasRoot.transform.Find("R1_PlanningUI_Group");
+            GameObject panel;
+            if (panelT != null)
+            {
+                panel = panelT.gameObject;
+            }
+            else
+            {
+                panel = new GameObject("R1_PlanningUI_Group");
+                panel.transform.SetParent(canvasRoot.transform, false);
+                RectTransform panelRect = panel.AddComponent<RectTransform>();
+                panelRect.anchorMin = Vector2.zero;
+                panelRect.anchorMax = Vector2.one;
+                panelRect.offsetMin = Vector2.zero;
+                panelRect.offsetMax = Vector2.zero;
+            }
 
-            CreatePanel(panel.transform, "DarkOverlay", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero,
-                new Color(0.02f, 0.05f, 0.05f, 0.10f));
+            Transform darkOverlayT = panel.transform.Find("DarkOverlay");
+            if (darkOverlayT == null)
+            {
+                CreatePanel(panel.transform, "DarkOverlay", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero,
+                    new Color(0.02f, 0.05f, 0.05f, 0.10f));
+            }
 
-            GameObject topBar = CreatePanel(panel.transform, "TopBar",
-                new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -76f), Vector2.zero,
-                new Color(0.035f, 0.10f, 0.10f, 0.92f));
-            CreateTMP(topBar.transform, "TitleText", "BẢN ĐỒ CỨU HỘ  •  ROUND 1", 34f,
-                TextAlignmentOptions.Center, new Color(0.94f, 0.91f, 0.84f),
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            Transform topBarT = panel.transform.Find("TopBar");
+            if (topBarT == null)
+            {
+                GameObject topBar = CreatePanel(panel.transform, "TopBar",
+                    new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -76f), Vector2.zero,
+                    new Color(0.035f, 0.10f, 0.10f, 0.92f));
+                CreateTMP(topBar.transform, "TitleText", "BẢN ĐỒ CỨU HỘ  •  ROUND 1", 34f,
+                    TextAlignmentOptions.Center, new Color(0.94f, 0.91f, 0.84f),
+                    Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            }
 
-            GameObject compactCard = CreatePanel(panel.transform, "CompactMapCard",
-                Vector2.zero, Vector2.zero,
-                new Vector2(36f, 78f), new Vector2(536f, 324f),
-                new Color(0.035f, 0.10f, 0.10f, 0.90f));
-            VerticalLayoutGroup cardLayout = compactCard.AddComponent<VerticalLayoutGroup>();
-            cardLayout.padding = new RectOffset(16, 16, 12, 12);
-            cardLayout.spacing = 4f;
-            cardLayout.childForceExpandWidth = true;
-            cardLayout.childForceExpandHeight = false;
-            cardLayout.childControlWidth = true;
-            cardLayout.childControlHeight = true;
+            Transform cardT = panel.transform.Find("CompactMapCard");
+            GameObject compactCard;
+            if (cardT != null)
+            {
+                compactCard = cardT.gameObject;
+            }
+            else
+            {
+                compactCard = CreatePanel(panel.transform, "CompactMapCard",
+                    Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero,
+                    new Color(0.035f, 0.10f, 0.10f, 0.90f));
 
-            txtMapCurrent = CreateTMPInLayout(compactCard.transform, "CurrentLocation",
-                "VỊ TRÍ: THEO DẤU ▲", 18f, TextAlignmentOptions.Left,
-                new Color(0.94f, 0.91f, 0.84f));
-            LayoutElement currentElement = txtMapCurrent.GetComponent<LayoutElement>();
-            currentElement.preferredHeight = 28f;
-            currentElement.flexibleWidth = 1f;
+                RectTransform cardRect = compactCard.GetComponent<RectTransform>();
+                cardRect.anchorMin = Vector2.zero;
+                cardRect.anchorMax = Vector2.zero;
+                cardRect.pivot = Vector2.zero;
+                cardRect.sizeDelta = new Vector2(408f, 316f);
+                cardRect.anchoredPosition = new Vector2(40f, 96f);
 
-            CreateDivider(compactCard.transform);
+                VerticalLayoutGroup cardLayout = compactCard.AddComponent<VerticalLayoutGroup>();
+                cardLayout.padding = new RectOffset(18, 18, 14, 14);
+                cardLayout.spacing = 5f;
+                cardLayout.childForceExpandWidth = true;
+                cardLayout.childForceExpandHeight = false;
+                cardLayout.childControlWidth = true;
+                cardLayout.childControlHeight = true;
+            }
 
-            GameObject statsGrid = new GameObject("StatsGrid");
-            statsGrid.transform.SetParent(compactCard.transform, false);
-            VerticalLayoutGroup statsLayout = statsGrid.AddComponent<VerticalLayoutGroup>();
-            statsLayout.spacing = 3f;
-            statsLayout.childAlignment = TextAnchor.UpperLeft;
-            statsLayout.childControlWidth = true;
-            statsLayout.childControlHeight = true;
-            statsLayout.childForceExpandWidth = true;
-            statsLayout.childForceExpandHeight = false;
-            LayoutElement statsElement = statsGrid.AddComponent<LayoutElement>();
-            statsElement.preferredHeight = 66f;
-            statsElement.flexibleWidth = 1f;
+            Transform currentLocationT = compactCard.transform.Find("CurrentLocation");
+            if (currentLocationT != null)
+            {
+                txtMapCurrent = currentLocationT.GetComponent<TextMeshProUGUI>();
+            }
+            else
+            {
+                txtMapCurrent = CreateTMPInLayout(compactCard.transform, "CurrentLocation",
+                    "VỊ TRÍ: THEO DẤU ▲", 22f, TextAlignmentOptions.Left,
+                    new Color(0.94f, 0.91f, 0.84f));
+                LayoutElement currentElement = txtMapCurrent.GetComponent<LayoutElement>();
+                currentElement.preferredHeight = 36f;
+                currentElement.flexibleWidth = 1f;
+            }
 
-            txtMapTime = CreateStatRow(statsGrid.transform, "TimeRow", "THỜI GIAN", "--:--");
-            txtMapCargo = CreateStatRow(statsGrid.transform, "CargoRow", "TRÊN THUYỀN", "0/3");
-            txtMapSaved = CreateStatRow(statsGrid.transform, "SavedRow", "ĐÃ CỨU", "0/3");
+            Transform divider1T = compactCard.transform.Find("Divider1");
+            if (divider1T == null)
+            {
+                CreateDividerWithName(compactCard.transform, "Divider1");
+            }
 
-            CreateDivider(compactCard.transform);
+            Transform statsGridT = compactCard.transform.Find("StatsGrid");
+            GameObject statsGrid;
+            if (statsGridT != null)
+            {
+                statsGrid = statsGridT.gameObject;
+            }
+            else
+            {
+                statsGrid = new GameObject("StatsGrid");
+                statsGrid.transform.SetParent(compactCard.transform, false);
+                VerticalLayoutGroup statsLayout = statsGrid.AddComponent<VerticalLayoutGroup>();
+                statsLayout.spacing = 3f;
+                statsLayout.childAlignment = TextAnchor.UpperLeft;
+                statsLayout.childControlWidth = true;
+                statsLayout.childControlHeight = true;
+                statsLayout.childForceExpandWidth = true;
+                statsLayout.childForceExpandHeight = false;
+                LayoutElement statsElement = statsGrid.AddComponent<LayoutElement>();
+                statsElement.preferredHeight = 84f;
+                statsElement.flexibleWidth = 1f;
+            }
 
-            TMP_Text objLabel = CreateTMPInLayout(compactCard.transform, "LblObjective", "MỤC TIÊU", 16f,
-                TextAlignmentOptions.Left, new Color(0.80f, 0.71f, 0.47f));
-            LayoutElement objLabelElement = objLabel.GetComponent<LayoutElement>();
-            objLabelElement.preferredHeight = 20f;
-            objLabelElement.flexibleWidth = 1f;
+            Transform timeRowT = statsGrid.transform.Find("TimeRow");
+            if (timeRowT != null)
+            {
+                Transform valTimeRow = timeRowT.Find("ValTimeRow");
+                if (valTimeRow != null) txtMapTime = valTimeRow.GetComponent<TextMeshProUGUI>();
+            }
+            else
+            {
+                txtMapTime = CreateStatRow(statsGrid.transform, "TimeRow", "THỜI GIAN", "--:--");
+            }
 
-            txtMapObjective = CreateTMPInLayout(compactCard.transform, "TxtObjective",
-                "Tìm nhà có tín hiệu cầu cứu.", 16f,
-                TextAlignmentOptions.Left, new Color(0.93f, 0.91f, 0.86f));
-            LayoutElement objValueElement = txtMapObjective.GetComponent<LayoutElement>();
-            objValueElement.preferredHeight = 30f;
-            objValueElement.flexibleWidth = 1f;
-            txtMapObjective.textWrappingMode = TextWrappingModes.Normal;
-            txtMapObjective.overflowMode = TextOverflowModes.Overflow;
+            Transform cargoRowT = statsGrid.transform.Find("CargoRow");
+            if (cargoRowT != null)
+            {
+                Transform valCargoRow = cargoRowT.Find("ValCargoRow");
+                if (valCargoRow != null) txtMapCargo = valCargoRow.GetComponent<TextMeshProUGUI>();
+            }
+            else
+            {
+                txtMapCargo = CreateStatRow(statsGrid.transform, "CargoRow", "TRÊN THUYỀN", "0/3");
+            }
 
-            CreateDivider(compactCard.transform);
-            CreateLegendGrid(compactCard.transform);
+            Transform savedRowT = statsGrid.transform.Find("SavedRow");
+            if (savedRowT != null)
+            {
+                Transform valSavedRow = savedRowT.Find("ValSavedRow");
+                if (valSavedRow != null) txtMapSaved = valSavedRow.GetComponent<TextMeshProUGUI>();
+            }
+            else
+            {
+                txtMapSaved = CreateStatRow(statsGrid.transform, "SavedRow", "ĐÃ CỨU", "0/3");
+            }
 
-            GameObject footer = CreatePanel(panel.transform, "FooterBar",
-                Vector2.zero, new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 58f),
-                new Color(0.035f, 0.10f, 0.10f, 0.92f));
-            CreateTMP(footer.transform, "TxtFooter", "TAB / ESC  •  ĐÓNG BẢN ĐỒ", 18f,
-                TextAlignmentOptions.Center, new Color(0.82f, 0.84f, 0.80f),
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            Transform divider2T = compactCard.transform.Find("Divider2");
+            if (divider2T == null)
+            {
+                CreateDividerWithName(compactCard.transform, "Divider2");
+            }
+
+            Transform lblObjectiveT = compactCard.transform.Find("LblObjective");
+            if (lblObjectiveT == null)
+            {
+                TMP_Text objLabel = CreateTMPInLayout(compactCard.transform, "LblObjective", "MỤC TIÊU", 19f,
+                    TextAlignmentOptions.Left, new Color(0.80f, 0.71f, 0.47f));
+                LayoutElement objLabelElement = objLabel.GetComponent<LayoutElement>();
+                objLabelElement.preferredHeight = 26f;
+                objLabelElement.flexibleWidth = 1f;
+            }
+
+            Transform txtObjectiveT = compactCard.transform.Find("TxtObjective");
+            if (txtObjectiveT != null)
+            {
+                txtMapObjective = txtObjectiveT.GetComponent<TextMeshProUGUI>();
+            }
+            else
+            {
+                txtMapObjective = CreateTMPInLayout(compactCard.transform, "TxtObjective",
+                    "Tìm nhà có tín hiệu cầu cứu.", 19f,
+                    TextAlignmentOptions.Left, new Color(0.93f, 0.91f, 0.86f));
+                LayoutElement objValueElement = txtMapObjective.GetComponent<LayoutElement>();
+                objValueElement.preferredHeight = 42f;
+                objValueElement.flexibleWidth = 1f;
+                txtMapObjective.textWrappingMode = TextWrappingModes.Normal;
+                txtMapObjective.overflowMode = TextOverflowModes.Overflow;
+                txtMapObjective.lineSpacing = 1.5f;
+            }
+
+            Transform divider3T = compactCard.transform.Find("Divider3");
+            if (divider3T == null)
+            {
+                CreateDividerWithName(compactCard.transform, "Divider3");
+            }
+
+            Transform legendGridT = compactCard.transform.Find("LegendGrid");
+            if (legendGridT == null)
+            {
+                CreateLegendGrid(compactCard.transform);
+            }
+
+            Transform footerT = panel.transform.Find("FooterBar");
+            if (footerT == null)
+            {
+                GameObject footer = CreatePanel(panel.transform, "FooterBar",
+                    Vector2.zero, new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 58f),
+                    new Color(0.035f, 0.10f, 0.10f, 0.92f));
+                CreateTMP(footer.transform, "TxtFooter", "TAB / ESC  •  ĐÓNG BẢN ĐỒ", 18f,
+                    TextAlignmentOptions.Center, new Color(0.82f, 0.84f, 0.80f),
+                    Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            }
 
             ApplyPlanningTypography(panel.transform);
         }
 
         private void EnsureMarkers()
         {
-            if (nhaBaMarker != null) return;
-
-            markerRoot = new GameObject("R1_MapObjectiveIcons");
-            nhaBaAnchor = FindAnchor("R1_NhaBa_RescueAnchor");
-            nhaTuAnchor = FindAnchor("R1_NhaTu_RescueAnchor");
-            shelterAnchor = FindAnchor("R1_R2Style_Shelter_BaiDinh");
-
-            nhaBaMarker = CreateWorldMarker("R1_MapMarker_NhaBa", false);
-            nhaTuMarker = CreateWorldMarker("R1_MapMarker_NhaTu", false);
-            shelterMarker = CreateWorldMarker("R1_MapMarker_Shelter", true);
-            
-            if (boatController != null)
+            if (markerRoot == null)
             {
-                playerMarker = CreatePlayerWorldMarker("R1_MapMarker_PlayerBoat");
+                markerRoot = GameObject.Find("R1_MapObjectiveIcons");
+                if (markerRoot == null)
+                {
+                    markerRoot = new GameObject("R1_MapObjectiveIcons");
+                }
+            }
+
+            if (nhaBaAnchor == null) nhaBaAnchor = FindAnchor("R1_NhaBa_RescueAnchor");
+            if (nhaTuAnchor == null) nhaTuAnchor = FindAnchor("R1_NhaTu_RescueAnchor");
+            if (shelterAnchor == null) shelterAnchor = FindAnchor("R1_R2Style_Shelter_BaiDinh");
+
+            if (nhaBaMarker == null)
+            {
+                Transform existing = markerRoot.transform.Find("R1_MapMarker_NhaBa");
+                if (existing != null) nhaBaMarker = existing;
+                else nhaBaMarker = CreateWorldMarker("R1_MapMarker_NhaBa", false);
+
+                labelNhaBa = nhaBaMarker.GetComponentInChildren<TextMeshPro>();
+                nhaBaBaseScale = nhaBaMarker.localScale;
+            }
+
+            if (nhaTuMarker == null)
+            {
+                Transform existing = markerRoot.transform.Find("R1_MapMarker_NhaTu");
+                if (existing != null) nhaTuMarker = existing;
+                else nhaTuMarker = CreateWorldMarker("R1_MapMarker_NhaTu", false);
+
+                labelNhaTu = nhaTuMarker.GetComponentInChildren<TextMeshPro>();
+                nhaTuBaseScale = nhaTuMarker.localScale;
+            }
+
+            if (shelterMarker == null)
+            {
+                Transform existing = markerRoot.transform.Find("R1_MapMarker_Shelter");
+                if (existing != null) shelterMarker = existing;
+                else shelterMarker = CreateWorldMarker("R1_MapMarker_Shelter", true);
+
+                labelShelter = shelterMarker.GetComponentInChildren<TextMeshPro>();
+                shelterBaseScale = shelterMarker.localScale;
+            }
+
+            if (playerMarker == null && boatController != null)
+            {
+                Transform existing = markerRoot.transform.Find("R1_MapMarker_PlayerBoat");
+                if (existing != null) playerMarker = existing;
+                else playerMarker = CreatePlayerWorldMarker("R1_MapMarker_PlayerBoat");
+
+                playerMarkerBaseScale = playerMarker.localScale;
             }
         }
 
@@ -458,25 +621,55 @@ namespace Round1
 
         private void UpdateObjectiveMarkers()
         {
-            bool nhaBaActive = realtimeController != null
-                ? !realtimeController.rescuedA
-                : rescueController == null || rescueController.RemainingAtNhaBa > 0;
-            bool nhaTuActive = realtimeController != null
-                ? !realtimeController.rescuedB
-                : rescueController == null || rescueController.RemainingAtNhaTu > 0;
+            bool nhaBaCleared = false;
+            bool nhaTuCleared = false;
 
-            float rescuePulse = 1f + (Mathf.Sin(Time.time * 4f) * 0.5f + 0.5f) * 0.08f;
+            if (realtimeController != null)
+            {
+                nhaBaCleared = realtimeController.rescuedA;
+                nhaTuCleared = realtimeController.rescuedB;
+            }
+            else if (rescueController != null)
+            {
+                nhaBaCleared = rescueController.RemainingAtNhaBa <= 0;
+                nhaTuCleared = rescueController.RemainingAtNhaTu <= 0;
+            }
+            else
+            {
+                nhaBaCleared = false;
+                nhaTuCleared = false;
+            }
+
+            float rescuePulse = 1f + (Mathf.Sin(Time.unscaledTime * 4f) * 0.5f + 0.5f) * 0.08f;
             
             if (nhaBaMarker != null && nhaBaAnchor != null) {
-                nhaBaMarker.gameObject.SetActive(nhaBaActive);
+                nhaBaMarker.gameObject.SetActive(true);
                 nhaBaMarker.position = nhaBaAnchor.position + Vector3.up * 10f;
-                if (nhaBaActive) nhaBaMarker.localScale = new Vector3(rescuePulse, rescuePulse, rescuePulse);
+                if (!nhaBaCleared)
+                {
+                    if (labelNhaBa != null) labelNhaBa.color = RescueColorMap;
+                    nhaBaMarker.localScale = nhaBaBaseScale * rescuePulse;
+                }
+                else
+                {
+                    if (labelNhaBa != null) labelNhaBa.color = ClearedColorMap;
+                    nhaBaMarker.localScale = nhaBaBaseScale;
+                }
             }
             
             if (nhaTuMarker != null && nhaTuAnchor != null) {
-                nhaTuMarker.gameObject.SetActive(nhaTuActive);
+                nhaTuMarker.gameObject.SetActive(true);
                 nhaTuMarker.position = nhaTuAnchor.position + Vector3.up * 10f;
-                if (nhaTuActive) nhaTuMarker.localScale = new Vector3(rescuePulse, rescuePulse, rescuePulse);
+                if (!nhaTuCleared)
+                {
+                    if (labelNhaTu != null) labelNhaTu.color = RescueColorMap;
+                    nhaTuMarker.localScale = nhaTuBaseScale * rescuePulse;
+                }
+                else
+                {
+                    if (labelNhaTu != null) labelNhaTu.color = ClearedColorMap;
+                    nhaTuMarker.localScale = nhaTuBaseScale;
+                }
             }
             
             if (shelterMarker != null && shelterAnchor != null) {
@@ -485,8 +678,8 @@ namespace Round1
                 bool hasCargo = realtimeController != null
                     ? realtimeController.currentCargo > 0
                     : rescueController != null && rescueController.Cargo > 0;
-                float pulse = hasCargo ? 1f + Mathf.Sin(Time.time * shelterPulseSpeed) * shelterCargoPulseScale : 1f;
-                shelterMarker.localScale = new Vector3(pulse, pulse, pulse);
+                float pulse = hasCargo ? 1f + Mathf.Sin(Time.unscaledTime * shelterPulseSpeed) * shelterCargoPulseScale : 1f;
+                shelterMarker.localScale = shelterBaseScale * pulse;
             }
             
             if (playerMarker != null && boatController != null) {
@@ -494,6 +687,7 @@ namespace Round1
                 playerMarker.position = boatController.transform.position + Vector3.up * 10f;
                 float heading = boatController.transform.eulerAngles.y;
                 playerMarker.rotation = Quaternion.Euler(0f, heading + 180f, 0f) * Quaternion.Euler(90f, 0f, 0f);
+                playerMarker.localScale = playerMarkerBaseScale;
             }
         }
 
@@ -602,27 +796,32 @@ namespace Round1
             rowLayout.childForceExpandHeight = false;
 
             LayoutElement rowElement = row.AddComponent<LayoutElement>();
-            rowElement.preferredHeight = 20f;
+            rowElement.preferredHeight = 26f;
             rowElement.flexibleWidth = 1f;
 
-            TMP_Text labelText = CreateTMPInLayout(row.transform, "Lbl" + name, label, 16f,
+            TMP_Text labelText = CreateTMPInLayout(row.transform, "Lbl" + name, label, 19f,
                 TextAlignmentOptions.Left, new Color(0.80f, 0.71f, 0.47f));
             LayoutElement labelElement = labelText.GetComponent<LayoutElement>();
-            labelElement.preferredHeight = 20f;
+            labelElement.preferredHeight = 26f;
             labelElement.flexibleWidth = 1f;
 
-            TMP_Text valueText = CreateTMPInLayout(row.transform, "Val" + name, value, 17f,
+            TMP_Text valueText = CreateTMPInLayout(row.transform, "Val" + name, value, 20f,
                 TextAlignmentOptions.Right, new Color(0.94f, 0.91f, 0.84f));
             LayoutElement valueElement = valueText.GetComponent<LayoutElement>();
-            valueElement.preferredHeight = 20f;
-            valueElement.preferredWidth = 64f;
+            valueElement.preferredHeight = 26f;
+            valueElement.preferredWidth = 78f;
             valueElement.flexibleWidth = 0f;
             return valueText;
         }
 
         private static void CreateDivider(Transform parent)
         {
-            GameObject go = new GameObject("Divider");
+            CreateDividerWithName(parent, "Divider");
+        }
+
+        private static void CreateDividerWithName(Transform parent, string name)
+        {
+            GameObject go = new GameObject(name);
             go.transform.SetParent(parent, false);
             Image image = go.AddComponent<Image>();
             image.color = new Color(0.67f, 0.52f, 0.24f, 0.45f);
@@ -638,7 +837,7 @@ namespace Round1
             grid.transform.SetParent(parent, false);
 
             GridLayoutGroup layout = grid.AddComponent<GridLayoutGroup>();
-            layout.cellSize = new Vector2(230f, 20f);
+            layout.cellSize = new Vector2(182f, 24f);
             layout.spacing = new Vector2(8f, 4f);
             layout.startCorner = GridLayoutGroup.Corner.UpperLeft;
             layout.startAxis = GridLayoutGroup.Axis.Horizontal;
@@ -647,22 +846,22 @@ namespace Round1
             layout.constraintCount = 2;
 
             LayoutElement gridElement = grid.AddComponent<LayoutElement>();
-            gridElement.preferredHeight = 44f;
+            gridElement.preferredHeight = 56f;
             gridElement.flexibleWidth = 1f;
 
             CreateLegendItem(grid.transform, "LegendBoat", "<color=#FFDB2E>▲</color> Thuyền");
             CreateLegendItem(grid.transform, "LegendRescue", "<color=#FF7A1F>●</color> Cần cứu");
-            CreateLegendItem(grid.transform, "LegendShelter", "<color=#38E65F>□</color> Điểm trú");
-            CreateLegendItem(grid.transform, "LegendCleared", "<color=#707371>●</color> Đã cứu");
+            CreateLegendItem(grid.transform, "LegendShelter", "<color=#38E65F>♦</color> Điểm trú");
+            CreateLegendItem(grid.transform, "LegendCleared", "<color=#929794>●</color> Đã cứu");
         }
 
         private static void CreateLegendItem(Transform parent, string name, string text)
         {
-            TMP_Text item = CreateTMPInLayout(parent, name, text, 15f,
+            TMP_Text item = CreateTMPInLayout(parent, name, text, 17.5f,
                 TextAlignmentOptions.Left, new Color(0.82f, 0.84f, 0.80f));
             item.overflowMode = TextOverflowModes.Overflow;
             LayoutElement element = item.GetComponent<LayoutElement>();
-            element.preferredHeight = 20f;
+            element.preferredHeight = 24f;
         }
 
         private static void ApplyPlanningTypography(Transform root)
@@ -828,17 +1027,18 @@ namespace Round1
             labelGo.transform.localRotation = Quaternion.identity;
             var label = labelGo.AddComponent<TextMeshPro>();
             label.alignment = TextAlignmentOptions.Center;
-            label.fontSize = 5f; // very compact size
-            label.lineSpacing = -6f;
+            label.fontSize = shelter ? 13.4f : 15.5f;
             label.enableWordWrapping = false;
             
             if (shelter) {
-                label.text = "<size=300%><color=#6BAE74>♦</color></size>\n<size=100%><color=#E0E0E0>Điểm trú</color></size>";
+                label.text = "♦";
+                label.color = ShelterColorMap;
             } else {
-                label.text = "<size=300%><color=#C97A24>●</color></size>\n<size=100%><color=#E0E0E0>Cần cứu</color></size>";
+                label.text = "●";
+                label.color = RescueColorMap;
             }
-            label.outlineWidth = 0.25f;
-            label.outlineColor = new Color(0.02f, 0.02f, 0.02f, 0.90f);
+            label.outlineWidth = 0.16f;
+            label.outlineColor = new Color(0.02f, 0.025f, 0.02f, 0.88f);
             
             return root.transform;
         }
@@ -855,12 +1055,12 @@ namespace Round1
             labelGo.transform.localRotation = Quaternion.identity;
             var label = labelGo.AddComponent<TextMeshPro>();
             label.alignment = TextAlignmentOptions.Center;
-            label.fontSize = 5f;
-            label.lineSpacing = -6f;
+            label.fontSize = 13.4f;
             label.enableWordWrapping = false;
-            label.text = "<size=300%><color=#6FAFB2>▲</color></size>\n<size=100%><color=#E0E0E0>Thuyền</color></size>";
-            label.outlineWidth = 0.25f;
-            label.outlineColor = new Color(0.02f, 0.02f, 0.02f, 0.90f);
+            label.text = "▲";
+            label.color = BoatColorMap;
+            label.outlineWidth = 0.16f;
+            label.outlineColor = new Color(0.02f, 0.025f, 0.02f, 0.88f);
             
             return root.transform;
         }

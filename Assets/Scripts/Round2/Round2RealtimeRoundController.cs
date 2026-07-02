@@ -61,10 +61,13 @@ public class Round2RealtimeRoundController : MonoBehaviour
         if (txtFeedback == null) txtFeedback = FindText("TXT_R2_ContextToast");
         if (txtFeedback != null)
         {
-            feedbackGroup = txtFeedback.GetComponentInParent<CanvasGroup>();
+            Transform feedbackRoot = txtFeedback.transform.parent;
+            feedbackGroup = feedbackRoot != null
+                ? feedbackRoot.GetComponent<CanvasGroup>()
+                : null;
             feedbackAccent = FindImage("IMG_R2_ToastAccent");
-            if (txtFeedback.transform.parent != null)
-                txtFeedback.transform.parent.gameObject.SetActive(false);
+            if (feedbackRoot != null)
+                feedbackRoot.gameObject.SetActive(false);
         }
 
         UpdateHUD();
