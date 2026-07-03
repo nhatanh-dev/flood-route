@@ -61,6 +61,7 @@ namespace Round1
         private BoxCollider internalCollider;
 
         public float currentSpeed;
+        public float CurrentSpeedAbs => Mathf.Abs(currentSpeed);
         public Vector3 CurrentBoatForwardWorld => GetBoatForwardDirection();
         private float pitch;
         private float cameraYaw;

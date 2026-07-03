@@ -227,7 +227,7 @@ namespace Round1
             UpdateTurnHUD();
 
             // Show instruction immediately
-            ShowInstruction($"Đi tới {target.displayName}.\nWASD: Lái thuyền | Tab: Bản đồ | E: Cứu/Thả người | Q: Chờ");
+            ShowInstruction($"Đi tới {target.displayName}.\nWASD: Lái thuyền | Tab: Bản đồ | E: Cứu/Thả người");
         }
 
         // ── Marker ────────────────────────────────────────────────────────

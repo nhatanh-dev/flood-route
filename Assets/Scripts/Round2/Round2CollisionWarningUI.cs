@@ -19,13 +19,23 @@ namespace Round2
         public int underHudSortingOrder = -5;
         public int overHudSortingOrder = 100;
 
+        [Header("World Line")]
+        [Tooltip("Chiều cao của vạch đỏ so với mặt nước")]
+        public float boundaryLineHeight = 0.90f;
+        [Tooltip("Độ dày của vạch đỏ")]
+        public float boundaryLineWidth = 0.05f;
+
         [Header("Debug")]
         public bool enableDebugLogs = false;
 
         private Image vignetteImage;
+        private LineRenderer boundaryLine;
         private Texture2D vignetteTexture;
         private float currentAlpha;
+        private float currentBoundaryAlpha;
         private Color currentColor;
+        private Vector3 lastBoundaryHitPoint;
+        private Vector3 lastBoundaryHitNormal;
 
         private void Awake()
         {
@@ -60,6 +70,17 @@ namespace Round2
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
+
+            GameObject lineGo = new GameObject("R2_BoundaryLineVisual");
+            lineGo.transform.SetParent(transform, false);
+            boundaryLine = lineGo.AddComponent<LineRenderer>();
+            boundaryLine.startWidth = boundaryLineWidth;
+            boundaryLine.endWidth = boundaryLineWidth;
+            boundaryLine.positionCount = 2;
+            boundaryLine.material = new Material(Shader.Find("Sprites/Default"));
+            boundaryLine.startColor = new Color(1f, 0f, 0f, 0f);
+            boundaryLine.endColor = new Color(1f, 0f, 0f, 0f);
+            boundaryLine.useWorldSpace = true;
         }
 
         private Texture2D CreateVignetteTexture()
@@ -88,6 +109,18 @@ namespace Round2
             return tex;
         }
 
+        public void TriggerBoundaryWarning(Vector3 hitPoint, Vector3 hitNormal)
+        {
+            if (enableDebugLogs)
+            {
+                Debug.Log("[Round2CollisionWarningUI] Boundary hit=" + hitPoint);
+            }
+
+            currentBoundaryAlpha = 0.9f;
+            lastBoundaryHitPoint = hitPoint;
+            lastBoundaryHitNormal = hitNormal;
+        }
+
         public void TriggerLightContactWarning()
         {
             if (enableDebugLogs)
@@ -113,30 +146,58 @@ namespace Round2
         public void ClearWarning()
         {
             currentAlpha = 0f;
+            currentBoundaryAlpha = 0f;
             ApplyAlpha();
+            ApplyBoundaryLine();
         }
 
         private void Update()
         {
-            if (vignetteImage == null)
-            {
-                return;
-            }
+            if (vignetteImage == null || boundaryLine == null) return;
 
             currentAlpha = Mathf.Max(0f, currentAlpha - Time.deltaTime * fadeSpeed);
+            currentBoundaryAlpha = Mathf.Max(0f, currentBoundaryAlpha - Time.deltaTime * fadeSpeed);
+            
+            // Allow live updating of width from Inspector
+            boundaryLine.startWidth = boundaryLineWidth;
+            boundaryLine.endWidth = boundaryLineWidth;
+
             ApplyAlpha();
+            ApplyBoundaryLine();
         }
 
         private void ApplyAlpha()
         {
-            if (vignetteImage == null)
-            {
-                return;
-            }
+            if (vignetteImage == null) return;
 
             Color c = currentColor;
             c.a = currentAlpha;
             vignetteImage.color = c;
+        }
+
+        private void ApplyBoundaryLine()
+        {
+            if (boundaryLine == null) return;
+
+            if (currentBoundaryAlpha > 0.01f)
+            {
+                Vector3 tangent = Vector3.Cross(lastBoundaryHitNormal, Vector3.up).normalized;
+                if (tangent.sqrMagnitude < 0.01f)
+                {
+                    tangent = Vector3.right;
+                }
+
+                Vector3 hitPoint = lastBoundaryHitPoint;
+                hitPoint.y = boundaryLineHeight;
+
+                boundaryLine.SetPosition(0, hitPoint + tangent * 3f);
+                boundaryLine.SetPosition(1, hitPoint - tangent * 3f);
+            }
+
+            Color color = boundaryLine.startColor;
+            color.a = currentBoundaryAlpha;
+            boundaryLine.startColor = color;
+            boundaryLine.endColor = color;
         }
 
         private void OnDestroy()
@@ -144,6 +205,11 @@ namespace Round2
             if (vignetteTexture != null)
             {
                 Destroy(vignetteTexture);
+            }
+
+            if (boundaryLine != null && boundaryLine.material != null)
+            {
+                Destroy(boundaryLine.material);
             }
         }
     }

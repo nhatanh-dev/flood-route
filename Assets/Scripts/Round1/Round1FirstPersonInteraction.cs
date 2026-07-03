@@ -118,7 +118,7 @@ namespace Round1
                 nhaTuBadgeText = FindBadgeCountText(nhaTuBadgeRoot);
 
             // Set bottom instruction bar
-            SetMsg("<b>WASD</b>  Lái thuyền     <b>E</b>  Cứu / Thả     <b>TAB</b>  Bản đồ     <b>Q</b>  Chờ");
+            SetMsg("<b>WASD</b> Lái thuyền   <b>E</b> Cứu / Thả   <b>TAB</b> Bản đồ");
 
             // Turn counter is now used in FP mode
             // if (txtTurn != null) txtTurn.text = "Lượt: —";
