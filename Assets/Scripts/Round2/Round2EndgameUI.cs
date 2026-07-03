@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 public class Round2EndgameUI : MonoBehaviour
 {
@@ -28,27 +29,46 @@ public class Round2EndgameUI : MonoBehaviour
     public Button btnCampaignRetry;
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
-    [Header("Campaign Ending Timing")]
+    [Header("Summary Panel Transition")]
     [SerializeField, Min(0.1f)] private float victoryHudFadeDuration = 0.4f;
-    [SerializeField, Min(0.1f)] private float resultCardFadeDuration = 0.45f;
-    [SerializeField, Min(0.1f)] private float transitionDuration = 0.55f;
-    [SerializeField, Min(0.1f)] private float titleRevealDuration = 0.55f;
-    [SerializeField, Min(0.1f)] private float resultRevealDuration = 0.45f;
-    [SerializeField, Min(0f)] private float resultRevealGap = 0.2f;
-    [SerializeField, Min(0.1f)] private float closingRevealDuration = 0.55f;
-    [SerializeField, Min(0.1f)] private float buttonRevealDuration = 0.5f;
+    [SerializeField, Range(0.6f, 0.65f)] private float resultCardFadeDuration = 0.65f;
+    [SerializeField, Range(0.65f, 0.75f)] private float summaryPanelFadeDuration = 0.7f;
 
-    [Header("Victory Ambience")]
+    [Header("Summary Content Timing")]
+    [SerializeField, Min(0f)] private float titleRevealStart = 0.55f;
+    [SerializeField, Min(0.1f)] private float titleRevealDuration = 0.55f;
+    [SerializeField, Min(0f)] private float statsRevealStart = 1.35f;
+    [FormerlySerializedAs("resultRevealDuration")]
+    [SerializeField, Min(0.1f)] private float statsRevealDuration = 0.4f;
+    [FormerlySerializedAs("resultRevealGap")]
+    [Tooltip("Seconds between the start of each statistic reveal.")]
+    [SerializeField, Min(0f)] private float statsStagger = 0.35f;
+    [SerializeField, Min(0f)] private float messageRevealStart = 2.7f;
+    [SerializeField, Min(0.1f)] private float closingRevealDuration = 0.7f;
+    [SerializeField, Min(0f)] private float buttonsRevealStart = 3.8f;
+    [SerializeField, Min(0.1f)] private float buttonRevealDuration = 0.6f;
+
+    [Header("Summary Motion")]
+    [SerializeField, Range(0.9f, 1f)] private float titleStartScale = 0.96f;
+    [SerializeField, Range(0f, 24f)] private float contentVerticalOffset = 12f;
+
+    [Header("Victory Audio")]
     [SerializeField] private AudioSource rainAmbienceSource;
     [SerializeField] private AudioSource thunderAmbienceSource;
     [SerializeField] private RandomAmbientAudio thunderAmbientPlayer;
-    [SerializeField, Range(0.8f, 1.2f)] private float victoryAmbienceFadeDuration = 1f;
+    [Tooltip("Multiplier applied to the cached gameplay rain/storm volume on victory.")]
+    [SerializeField, Range(0.2f, 0.25f)] private float victoryAmbienceWaitingVolumeScale = 0.22f;
+    [SerializeField, Range(0.7f, 1f)] private float victoryAmbienceFadeDuration = 0.8f;
 
-    [Header("Optional Campaign Summary Music")]
+    [Header("Summary Audio Transition")]
+    [SerializeField, Range(1.2f, 1.6f)] private float summaryAmbienceFadeDuration = 1.4f;
     [SerializeField] private AudioSource summaryMusicSource;
     [SerializeField] private AudioClip summaryMusicClip;
-    [SerializeField, Range(1f, 1.5f)] private float summaryMusicFadeDuration = 1.25f;
-    [SerializeField, Range(0f, 1f)] private float summaryMusicTargetVolume = 0.7f;
+    [FormerlySerializedAs("summaryMusicStartDelay")]
+    [Tooltip("Delay before rain, music volume, and summary background begin fading.")]
+    [SerializeField, Range(0f, 0.3f)] private float summaryCrossfadeDelay = 0.15f;
+    [SerializeField, Range(2.8f, 3f)] private float summaryMusicFadeDuration = 2.9f;
+    [SerializeField, Range(0f, 1f)] private float summaryMusicTargetVolume = 0.6f;
 
     [Header("Campaign Totals")]
     [SerializeField, Min(0)] private int round1CivilianTotal = 3;
@@ -74,6 +94,7 @@ public class Round2EndgameUI : MonoBehaviour
     private CanvasGroup campaignPanelGroup;
     private CanvasGroup[] titleGroups;
     private CanvasGroup closingGroup;
+    private CanvasGroup[] closingGroups;
     private CanvasGroup[] buttonGroups;
     private readonly List<CanvasGroup[]> campaignStatGroups = new List<CanvasGroup[]>();
     private readonly Dictionary<RectTransform, Vector2> revealBasePositions = new Dictionary<RectTransform, Vector2>();
@@ -439,6 +460,8 @@ public class Round2EndgameUI : MonoBehaviour
         endingSequenceStarted = true;
         endingSequenceComplete = false;
         overlayActive = true;
+        StartSummaryAmbienceFadeToSilence();
+        StartSummaryMusicTransitionFade();
         HideGameplayPresentationForCampaignSummary();
 
         if (endingSequenceRoutine != null)
@@ -456,32 +479,86 @@ public class Round2EndgameUI : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        yield return FadeCanvasGroup(resultCardGroup, 1f, 0f, resultCardFadeDuration);
-        if (resultCard != null)
-            resultCard.SetActive(false);
-
-        yield return FadeSummaryTransition(transitionDuration);
-
         if (campaignEndingPanel != null)
             campaignEndingPanel.SetActive(true);
 
-        StartSummaryMusicFadeIn();
-        yield return FadeCampaignPanelIn(titleRevealDuration);
-        yield return RevealGroups(titleGroups, titleRevealDuration, false, campaignTitleRect);
-        yield return new WaitForSecondsRealtime(0.35f);
-
-        for (int i = 0; i < campaignStatGroups.Count; i++)
+        if (resultCardGroup != null)
         {
-            yield return RevealGroups(campaignStatGroups[i], resultRevealDuration, true, null);
-            if (i < campaignStatGroups.Count - 1 && resultRevealGap > 0f)
-                yield return new WaitForSecondsRealtime(resultRevealGap);
+            resultCardGroup.interactable = false;
+            resultCardGroup.blocksRaycasts = false;
         }
 
-        yield return RevealGroups(new[] { closingGroup }, closingRevealDuration, true, null);
-        yield return new WaitForSecondsRealtime(0.35f);
-        yield return RevealGroups(buttonGroups, buttonRevealDuration, false, null);
+        float sequenceDuration = buttonsRevealStart + buttonRevealDuration;
+        float elapsed = 0f;
+        while (elapsed < sequenceDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+
+            float resultProgress = GetRevealProgress(
+                elapsed, 0f, resultCardFadeDuration);
+            if (resultCardGroup != null)
+                resultCardGroup.alpha = 1f - resultProgress;
+            if (resultCard != null && resultProgress >= 1f && resultCard.activeSelf)
+                resultCard.SetActive(false);
+
+            float panelProgress = GetRevealProgress(
+                elapsed, summaryCrossfadeDelay, summaryPanelFadeDuration);
+            if (campaignPanelGroup != null)
+                campaignPanelGroup.alpha = panelProgress;
+
+            float titleProgress = GetRevealProgress(
+                elapsed, titleRevealStart, titleRevealDuration);
+            SetRevealProgress(titleGroups, titleProgress, false, 0f);
+            if (campaignTitleRect != null)
+            {
+                campaignTitleRect.localScale = Vector3.Lerp(
+                    campaignTitleBaseScale * titleStartScale,
+                    campaignTitleBaseScale,
+                    titleProgress);
+            }
+
+            for (int i = 0; i < campaignStatGroups.Count; i++)
+            {
+                float statProgress = GetRevealProgress(
+                    elapsed,
+                    statsRevealStart + statsStagger * i,
+                    statsRevealDuration);
+                SetRevealProgress(
+                    campaignStatGroups[i],
+                    statProgress,
+                    true,
+                    contentVerticalOffset);
+            }
+
+            float messageProgress = GetRevealProgress(
+                elapsed, messageRevealStart, closingRevealDuration);
+            SetRevealProgress(
+                closingGroups,
+                messageProgress,
+                true,
+                contentVerticalOffset);
+
+            float buttonsProgress = GetRevealProgress(
+                elapsed, buttonsRevealStart, buttonRevealDuration);
+            SetRevealProgress(
+                buttonGroups,
+                buttonsProgress,
+                true,
+                contentVerticalOffset * 0.5f);
+
+            yield return null;
+        }
 
         SetCanvasGroupState(campaignPanelGroup, 1f, true);
+        SetRevealProgress(titleGroups, 1f, false, 0f);
+        for (int i = 0; i < campaignStatGroups.Count; i++)
+            SetRevealProgress(campaignStatGroups[i], 1f, true, contentVerticalOffset);
+        SetRevealProgress(
+            closingGroups, 1f, true, contentVerticalOffset);
+        SetRevealProgress(
+            buttonGroups, 1f, true, contentVerticalOffset * 0.5f);
+        if (campaignTitleRect != null)
+            campaignTitleRect.localScale = campaignTitleBaseScale;
         SetCampaignButtonsInteractable(true);
         endingSequenceComplete = true;
         endingSequenceRoutine = null;
@@ -526,6 +603,9 @@ public class Round2EndgameUI : MonoBehaviour
             closing.text = "Giữa dòng nước dữ, mọi người đã được đưa đến nơi an toàn.";
             closingGroup = GetOrAddCanvasGroup(closing.gameObject);
         }
+        closingGroups = closingGroup != null
+            ? new[] { closingGroup }
+            : System.Array.Empty<CanvasGroup>();
 
         titleGroups = CreateGroups(
             FindCampaignObject("IMG_R2_CampaignTopAccent"),
@@ -583,7 +663,7 @@ public class Round2EndgameUI : MonoBehaviour
         SetCampaignButtonsInteractable(false);
 
         if (campaignTitleRect != null)
-            campaignTitleRect.localScale = campaignTitleBaseScale * 0.96f;
+            campaignTitleRect.localScale = campaignTitleBaseScale * titleStartScale;
     }
 
     private void InitializeEndingPresentation()
@@ -681,28 +761,6 @@ public class Round2EndgameUI : MonoBehaviour
         victorySoundPlayed = false;
     }
 
-    private IEnumerator FadeSummaryTransition(float duration)
-    {
-        float startOverlayAlpha = overlayImage != null ? overlayImage.color.a : OverlayColor.a;
-        float targetOverlayAlpha = Mathf.Min(0.78f, OverlayColor.a + 0.12f);
-        float elapsed = 0f;
-        while (elapsed < duration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = Mathf.Clamp01(elapsed / duration);
-            float eased = Mathf.SmoothStep(0f, 1f, t);
-
-            if (overlayImage != null)
-            {
-                Color color = OverlayColor;
-                color.a = Mathf.Lerp(startOverlayAlpha, targetOverlayAlpha, eased);
-                overlayImage.color = color;
-            }
-
-            yield return null;
-        }
-    }
-
     private void ResolveAndCacheVictoryAudio()
     {
         if (rainAmbienceSource == null)
@@ -760,16 +818,20 @@ public class Round2EndgameUI : MonoBehaviour
         if (!ambienceStateCached)
             return;
 
-        victoryAmbienceFadeRoutine = StartCoroutine(FadeVictoryAmbienceToSilence());
+        victoryAmbienceFadeRoutine = StartCoroutine(FadeVictoryAmbienceToWaitingLevel());
     }
 
-    private IEnumerator FadeVictoryAmbienceToSilence()
+    private IEnumerator FadeVictoryAmbienceToWaitingLevel()
     {
         float rainStartVolume = rainAmbienceSource != null ? rainAmbienceSource.volume : 0f;
         float thunderStartVolume =
             thunderAmbienceSource != null ? thunderAmbienceSource.volume : 0f;
         float thunderPlayerStartVolume =
             thunderAmbientPlayer != null ? thunderAmbientPlayer.volume : 0f;
+        float rainTargetVolume = rainOriginalVolume * victoryAmbienceWaitingVolumeScale;
+        float thunderTargetVolume = thunderOriginalVolume * victoryAmbienceWaitingVolumeScale;
+        float thunderPlayerTargetVolume =
+            thunderAmbientOriginalVolume * victoryAmbienceWaitingVolumeScale;
         float elapsed = 0f;
 
         while (elapsed < victoryAmbienceFadeDuration)
@@ -777,6 +839,67 @@ public class Round2EndgameUI : MonoBehaviour
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.SmoothStep(
                 0f, 1f, Mathf.Clamp01(elapsed / victoryAmbienceFadeDuration));
+
+            if (rainAmbienceSource != null)
+                rainAmbienceSource.volume =
+                    Mathf.Lerp(rainStartVolume, rainTargetVolume, t);
+            if (thunderAmbienceSource != null)
+                thunderAmbienceSource.volume =
+                    Mathf.Lerp(thunderStartVolume, thunderTargetVolume, t);
+            if (thunderAmbientPlayer != null)
+                thunderAmbientPlayer.volume =
+                    Mathf.Lerp(thunderPlayerStartVolume, thunderPlayerTargetVolume, t);
+
+            yield return null;
+        }
+
+        if (rainAmbienceSource != null)
+            rainAmbienceSource.volume = rainTargetVolume;
+        if (thunderAmbienceSource != null)
+            thunderAmbienceSource.volume = thunderTargetVolume;
+        if (thunderAmbientPlayer != null)
+            thunderAmbientPlayer.volume = thunderPlayerTargetVolume;
+
+        ambienceMutedForVictory = true;
+        victoryAmbienceFadeRoutine = null;
+    }
+
+    private void StartSummaryAmbienceFadeToSilence()
+    {
+        ResolveAndCacheVictoryAudio();
+        if (!ambienceStateCached)
+            return;
+
+        if (victoryAmbienceFadeRoutine != null)
+        {
+            StopCoroutine(victoryAmbienceFadeRoutine);
+            victoryAmbienceFadeRoutine = null;
+        }
+
+        victoryAmbienceFadeRoutine = StartCoroutine(FadeSummaryAmbienceToSilence());
+    }
+
+    private IEnumerator FadeSummaryAmbienceToSilence()
+    {
+        float delayElapsed = 0f;
+        while (delayElapsed < summaryCrossfadeDelay)
+        {
+            delayElapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        float rainStartVolume = rainAmbienceSource != null ? rainAmbienceSource.volume : 0f;
+        float thunderStartVolume =
+            thunderAmbienceSource != null ? thunderAmbienceSource.volume : 0f;
+        float thunderPlayerStartVolume =
+            thunderAmbientPlayer != null ? thunderAmbientPlayer.volume : 0f;
+        float elapsed = 0f;
+
+        while (elapsed < summaryAmbienceFadeDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.SmoothStep(
+                0f, 1f, Mathf.Clamp01(elapsed / summaryAmbienceFadeDuration));
 
             if (rainAmbienceSource != null)
                 rainAmbienceSource.volume = Mathf.Lerp(rainStartVolume, 0f, t);
@@ -843,44 +966,78 @@ public class Round2EndgameUI : MonoBehaviour
         summaryMusicOriginalVolume = summaryMusicSource.volume;
         summaryMusicStateCached = true;
         summaryMusicSource.Stop();
+        summaryMusicSource.time = 0f;
         summaryMusicSource.volume = 0f;
     }
 
-    private void StartSummaryMusicFadeIn()
+    private void StartSummaryMusicTransitionFade()
     {
         if (summaryMusicSource == null || summaryMusicStarted ||
             summaryMusicFadeRoutine != null)
-        {
             return;
+
+        if (!EnsureSummaryMusicPlaying())
+            return;
+
+        summaryMusicFadeRoutine = StartCoroutine(BeginSummaryMusicFadeIn());
+    }
+
+    private IEnumerator BeginSummaryMusicFadeIn()
+    {
+        float elapsed = 0f;
+        while (elapsed < summaryCrossfadeDelay)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
         }
+
+        yield return FadeSummaryMusicToVolume(
+            summaryMusicTargetVolume, summaryMusicFadeDuration);
+    }
+
+    private bool EnsureSummaryMusicPlaying()
+    {
+        if (summaryMusicSource == null)
+            return false;
+
+        if (summaryMusicSource.isPlaying)
+        {
+            summaryMusicStarted = true;
+            return true;
+        }
+
+        if (summaryMusicStarted)
+            return false;
 
         CacheSummaryMusicState();
         AudioClip clip = summaryMusicClip != null ? summaryMusicClip : summaryMusicSource.clip;
         if (clip == null)
-            return;
+            return false;
 
         summaryMusicSource.clip = clip;
+        summaryMusicSource.time = 0f;
         summaryMusicSource.volume = 0f;
         summaryMusicSource.Play();
         summaryMusicStarted = true;
-        summaryMusicFadeRoutine = StartCoroutine(FadeSummaryMusicIn());
+        return true;
     }
 
-    private IEnumerator FadeSummaryMusicIn()
+    private IEnumerator FadeSummaryMusicToVolume(float targetVolume, float duration)
     {
+        float startVolume = summaryMusicSource != null ? summaryMusicSource.volume : 0f;
         float elapsed = 0f;
-        while (elapsed < summaryMusicFadeDuration)
+        while (elapsed < duration)
         {
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.SmoothStep(
-                0f, 1f, Mathf.Clamp01(elapsed / summaryMusicFadeDuration));
+                0f, 1f, Mathf.Clamp01(elapsed / duration));
             if (summaryMusicSource != null)
-                summaryMusicSource.volume = Mathf.Lerp(0f, summaryMusicTargetVolume, t);
+                summaryMusicSource.volume = Mathf.Lerp(startVolume, targetVolume, t);
             yield return null;
         }
 
         if (summaryMusicSource != null)
-            summaryMusicSource.volume = summaryMusicTargetVolume;
+            summaryMusicSource.volume = targetVolume;
         summaryMusicFadeRoutine = null;
     }
 
@@ -892,13 +1049,20 @@ public class Round2EndgameUI : MonoBehaviour
             summaryMusicFadeRoutine = null;
         }
 
-        if (summaryMusicSource != null && summaryMusicStarted)
-            summaryMusicSource.Stop();
-
-        if (summaryMusicSource != null && summaryMusicStateCached)
+        if (summaryMusicSource != null)
         {
-            summaryMusicSource.clip = summaryMusicOriginalClip;
-            summaryMusicSource.volume = summaryMusicOriginalVolume;
+            summaryMusicSource.Stop();
+            summaryMusicSource.time = 0f;
+
+            if (summaryMusicStateCached)
+            {
+                summaryMusicSource.clip = summaryMusicOriginalClip;
+                summaryMusicSource.volume = summaryMusicOriginalVolume;
+            }
+            else
+            {
+                summaryMusicSource.volume = 0f;
+            }
         }
 
         summaryMusicStarted = false;
@@ -910,31 +1074,6 @@ public class Round2EndgameUI : MonoBehaviour
             gameplayHUDCanvas.SetActive(false);
         if (gameplayRainOverlay != null)
             gameplayRainOverlay.SetActive(false);
-    }
-
-    private IEnumerator FadeCampaignPanelIn(float duration)
-    {
-        if (campaignPanelGroup == null)
-            yield break;
-
-        float startOverlayAlpha = overlayImage != null ? overlayImage.color.a : OverlayColor.a;
-        campaignPanelGroup.alpha = 0f;
-        float elapsed = 0f;
-        while (elapsed < duration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / duration));
-            campaignPanelGroup.alpha = t;
-            if (overlayImage != null)
-            {
-                Color color = OverlayColor;
-                color.a = Mathf.Lerp(startOverlayAlpha, OverlayColor.a, t);
-                overlayImage.color = color;
-            }
-            yield return null;
-        }
-
-        campaignPanelGroup.alpha = 1f;
     }
 
     private IEnumerator FadeGameplayHudForVictory()
@@ -973,64 +1112,46 @@ public class Round2EndgameUI : MonoBehaviour
         group.alpha = to;
     }
 
-    private IEnumerator RevealGroups(
-        CanvasGroup[] groups,
-        float duration,
-        bool slideUp,
-        RectTransform scaleTarget)
+    private static float GetRevealProgress(float elapsed, float start, float duration)
     {
-        if (groups == null || groups.Length == 0)
-            yield break;
+        if (duration <= 0f)
+            return elapsed >= start ? 1f : 0f;
 
-        List<RectTransform> rects = new List<RectTransform>();
+        return Mathf.SmoothStep(
+            0f, 1f, Mathf.Clamp01((elapsed - start) / duration));
+    }
+
+    private void SetRevealProgress(
+        CanvasGroup[] groups,
+        float progress,
+        bool slideUp,
+        float verticalOffset)
+    {
+        if (groups == null)
+            return;
+
         for (int i = 0; i < groups.Length; i++)
         {
             CanvasGroup group = groups[i];
             if (group == null)
                 continue;
 
-            group.alpha = 0f;
+            group.alpha = progress;
+            group.interactable = false;
+            group.blocksRaycasts = false;
+
             RectTransform rect = group.transform as RectTransform;
-            if (rect != null)
-            {
-                if (!revealBasePositions.ContainsKey(rect))
-                    revealBasePositions[rect] = rect.anchoredPosition;
-                if (slideUp)
-                    rect.anchoredPosition = revealBasePositions[rect] + Vector2.down * 8f;
-                rects.Add(rect);
-            }
+            if (rect == null || !slideUp)
+                continue;
+
+            if (!revealBasePositions.ContainsKey(rect))
+                revealBasePositions[rect] = rect.anchoredPosition;
+
+            rect.anchoredPosition = Vector2.Lerp(
+                revealBasePositions[rect] + Vector2.down * verticalOffset,
+                revealBasePositions[rect],
+                progress);
         }
-
-        Vector3 baseScale = scaleTarget != null ? campaignTitleBaseScale : Vector3.one;
-        if (scaleTarget != null)
-            scaleTarget.localScale = baseScale * 0.96f;
-
-        float elapsed = 0f;
-        while (elapsed < duration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / duration));
-            for (int i = 0; i < groups.Length; i++)
-                if (groups[i] != null) groups[i].alpha = t;
-
-            if (slideUp)
-            {
-                for (int i = 0; i < rects.Count; i++)
-                    rects[i].anchoredPosition =
-                        Vector2.Lerp(revealBasePositions[rects[i]] + Vector2.down * 8f,
-                            revealBasePositions[rects[i]], t);
-            }
-
-            if (scaleTarget != null)
-                scaleTarget.localScale = Vector3.Lerp(baseScale * 0.96f, baseScale, t);
-
-            yield return null;
-        }
-
-        for (int i = 0; i < groups.Length; i++)
-            if (groups[i] != null) groups[i].alpha = 1f;
-        if (scaleTarget != null)
-            scaleTarget.localScale = baseScale;
     }
 
     private void RestoreRevealTransforms()
