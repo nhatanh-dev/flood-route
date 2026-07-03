@@ -5,22 +5,25 @@ public sealed class BoatWakeController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private MonoBehaviour boatController;
-    [SerializeField] private ParticleSystem bowLeft;
-    [SerializeField] private ParticleSystem bowRight;
-    [SerializeField] private ParticleSystem bowPuffLeft;
-    [SerializeField] private ParticleSystem bowPuffRight;
+
+    // PRIMARY: small bow splash — main visible effect
+    [SerializeField] private ParticleSystem bowSplashLeft;
+    [SerializeField] private ParticleSystem bowSplashRight;
+
+    // SECONDARY: side ripple flecks
     [SerializeField] private ParticleSystem sideLeft;
     [SerializeField] private ParticleSystem sideRight;
+
+    // SECONDARY: stern disturbance
     [SerializeField] private ParticleSystem sternFoam;
 
     [Header("Speed Response")]
-    [SerializeField] private float minWakeSpeed = 0.15f;
+    [SerializeField] private float minWakeSpeed = 0.08f;
     [SerializeField] private float fullWakeSpeed = 2.2f;
     [SerializeField] private float responseSmoothing = 7.5f;
-    [SerializeField] private float maxBowEmission = 40f;
-    [SerializeField] private float maxBowPuffEmission = 14f;
-    [SerializeField] private float maxSideEmission = 14f;
-    [SerializeField] private float maxSternEmission = 22f;
+    [SerializeField] private float maxBowSplashEmission = 35f;
+    [SerializeField] private float maxSideEmission = 8f;
+    [SerializeField] private float maxSternEmission = 14f;
     [SerializeField] private bool stopWhenNoController = true;
     [SerializeField] private bool debugForceVisible;
     [SerializeField] private bool enableDebugLogs;
@@ -68,21 +71,12 @@ public sealed class BoatWakeController : MonoBehaviour
         if (!TryGetSpeed(out speed))
         {
             lastSpeed = 0f;
-            float missingControllerTarget = debugForceVisible ? 1f : 0f;
-            smoothedWakeStrength = SmoothWake(smoothedWakeStrength, missingControllerTarget);
+            float missingTarget = debugForceVisible ? 1f : 0f;
+            smoothedWakeStrength = SmoothWake(smoothedWakeStrength, missingTarget);
             lastWakeStrength = smoothedWakeStrength;
 
-            if (debugForceVisible)
-            {
-                SetWake(smoothedWakeStrength);
-                return;
-            }
-
-            if (stopWhenNoController)
-            {
-                SetWake(smoothedWakeStrength);
-            }
-
+            if (debugForceVisible) { SetWake(smoothedWakeStrength); return; }
+            if (stopWhenNoController) SetWake(smoothedWakeStrength);
             return;
         }
 
@@ -97,73 +91,49 @@ public sealed class BoatWakeController : MonoBehaviour
         SetWake(smoothedWakeStrength);
     }
 
-    public void Rebind(MonoBehaviour controller)
-    {
-        BoatController = controller;
-    }
+    public void Rebind(MonoBehaviour controller) => BoatController = controller;
 
     private void CacheReferences()
     {
-        if (bowLeft == null)
+        if (bowSplashLeft == null)
         {
-            Transform child = transform.Find("BowWake_Left");
-            if (child != null) bowLeft = child.GetComponent<ParticleSystem>();
+            var c = transform.Find("BowSplash_Left");
+            if (c != null) bowSplashLeft = c.GetComponent<ParticleSystem>();
         }
-
-        if (bowRight == null)
+        if (bowSplashRight == null)
         {
-            Transform child = transform.Find("BowWake_Right");
-            if (child != null) bowRight = child.GetComponent<ParticleSystem>();
+            var c = transform.Find("BowSplash_Right");
+            if (c != null) bowSplashRight = c.GetComponent<ParticleSystem>();
         }
-
-        if (bowPuffLeft == null)
-        {
-            Transform child = transform.Find("BowFoamPuff_Left");
-            if (child != null) bowPuffLeft = child.GetComponent<ParticleSystem>();
-        }
-
-        if (bowPuffRight == null)
-        {
-            Transform child = transform.Find("BowFoamPuff_Right");
-            if (child != null) bowPuffRight = child.GetComponent<ParticleSystem>();
-        }
-
         if (sideLeft == null)
         {
-            Transform child = transform.Find("SideWake_Left");
-            if (child != null) sideLeft = child.GetComponent<ParticleSystem>();
+            var c = transform.Find("SideWake_Left");
+            if (c != null) sideLeft = c.GetComponent<ParticleSystem>();
         }
-
         if (sideRight == null)
         {
-            Transform child = transform.Find("SideWake_Right");
-            if (child != null) sideRight = child.GetComponent<ParticleSystem>();
+            var c = transform.Find("SideWake_Right");
+            if (c != null) sideRight = c.GetComponent<ParticleSystem>();
         }
-
         if (sternFoam == null)
         {
-            Transform child = transform.Find("SternFoam");
-            if (child != null) sternFoam = child.GetComponent<ParticleSystem>();
+            var c = transform.Find("SternFoam");
+            if (c != null) sternFoam = c.GetComponent<ParticleSystem>();
         }
 
-        systems = new[] { bowLeft, bowRight, bowPuffLeft, bowPuffRight, sideLeft, sideRight, sternFoam };
+        systems = new[] { bowSplashLeft, bowSplashRight, sideLeft, sideRight, sternFoam };
     }
 
     private void CacheSpeedMember()
     {
         if (boatController == cachedController && (speedProperty != null || speedField != null))
-        {
             return;
-        }
 
         cachedController = boatController;
         speedProperty = null;
         speedField = null;
 
-        if (boatController == null)
-        {
-            return;
-        }
+        if (boatController == null) return;
 
         System.Type type = boatController.GetType();
         speedProperty = type.GetProperty(
@@ -179,20 +149,13 @@ public sealed class BoatWakeController : MonoBehaviour
         }
 
         if (enableDebugLogs && speedProperty == null && speedField == null)
-        {
-            Debug.LogWarning($"{name}: no CurrentSpeedAbs property or currentSpeed field found on {type.Name}.", this);
-        }
+            Debug.LogWarning($"{name}: no CurrentSpeedAbs or currentSpeed found on {type.Name}.", this);
     }
 
     private bool TryGetSpeed(out float speed)
     {
         speed = 0f;
-
-        if (boatController == null)
-        {
-            return false;
-        }
-
+        if (boatController == null) return false;
         CacheSpeedMember();
 
         if (speedProperty != null)
@@ -200,75 +163,52 @@ public sealed class BoatWakeController : MonoBehaviour
             speed = Mathf.Abs((float)speedProperty.GetValue(boatController, null));
             return true;
         }
-
         if (speedField != null)
         {
             speed = Mathf.Abs((float)speedField.GetValue(boatController));
             return true;
         }
-
         return false;
     }
 
     private void CaptureBaseSizes()
     {
-        if (systems == null)
-        {
-            return;
-        }
-
+        if (systems == null) return;
         baseStartSizes = new float[systems.Length];
         for (int i = 0; i < systems.Length; i++)
         {
-            if (systems[i] == null)
-            {
-                baseStartSizes[i] = 1f;
-                continue;
-            }
-
-            var main = systems[i].main;
-            baseStartSizes[i] = main.startSizeMultiplier;
+            if (systems[i] == null) { baseStartSizes[i] = 1f; continue; }
+            baseStartSizes[i] = systems[i].main.startSizeMultiplier;
         }
     }
 
     private void SetWake(float strength)
     {
-        float bowRate = maxBowEmission * strength;
-        float bowPuffRate = maxBowPuffEmission * strength;
-        float sideRate = maxSideEmission * strength;
-        float sternRate = maxSternEmission * strength;
+        float splashRate = maxBowSplashEmission * strength;
+        float sideRate   = maxSideEmission       * strength;
+        float sternRate  = maxSternEmission      * strength;
 
-        ApplySystem(bowLeft, 0, bowRate, strength);
-        ApplySystem(bowRight, 1, bowRate, strength);
-        ApplySystem(bowPuffLeft, 2, bowPuffRate, strength);
-        ApplySystem(bowPuffRight, 3, bowPuffRate, strength);
-        ApplySystem(sideLeft, 4, sideRate, strength);
-        ApplySystem(sideRight, 5, sideRate, strength);
-        ApplySystem(sternFoam, 6, sternRate, strength);
+        ApplySystem(bowSplashLeft,  0, splashRate, strength);
+        ApplySystem(bowSplashRight, 1, splashRate, strength);
+        ApplySystem(sideLeft,       2, sideRate,   strength);
+        ApplySystem(sideRight,      3, sideRate,   strength);
+        ApplySystem(sternFoam,      4, sternRate,  strength);
     }
 
     private void ApplySystem(ParticleSystem system, int index, float emissionRate, float strength)
     {
-        if (system == null)
-        {
-            return;
-        }
+        if (system == null) return;
 
-        ParticleSystem.EmissionModule emission = system.emission;
+        var emission = system.emission;
         emission.rateOverTime = emissionRate;
 
-        ParticleSystem.MainModule main = system.main;
+        var main = system.main;
         if (baseStartSizes != null && index >= 0 && index < baseStartSizes.Length)
-        {
             main.startSizeMultiplier = baseStartSizes[index] * Mathf.Lerp(0.85f, 1.12f, strength);
-        }
 
         if (strength > 0f)
         {
-            if (!system.isPlaying)
-            {
-                system.Play(false);
-            }
+            if (!system.isPlaying) system.Play(false);
         }
         else if (system.isPlaying)
         {
@@ -278,34 +218,20 @@ public sealed class BoatWakeController : MonoBehaviour
 
     private float SmoothWake(float current, float target)
     {
-        if (Application.isPlaying)
-        {
-            float factor = 1f - Mathf.Exp(-responseSmoothing * Time.deltaTime);
-            return Mathf.Lerp(current, target, factor);
-        }
-
-        return target;
+        if (!Application.isPlaying) return target;
+        return Mathf.Lerp(current, target, 1f - Mathf.Exp(-responseSmoothing * Time.deltaTime));
     }
 
-    private static float SmoothStep01(float value)
+    private static float SmoothStep01(float v)
     {
-        value = Mathf.Clamp01(value);
-        return value * value * (3f - 2f * value);
+        v = Mathf.Clamp01(v);
+        return v * v * (3f - 2f * v);
     }
 
     private void PlaySystems()
     {
-        if (systems == null)
-        {
-            return;
-        }
-
+        if (systems == null) return;
         for (int i = 0; i < systems.Length; i++)
-        {
-            if (systems[i] != null && !systems[i].isPlaying)
-            {
-                systems[i].Play(false);
-            }
-        }
+            if (systems[i] != null && !systems[i].isPlaying) systems[i].Play(false);
     }
 }

@@ -341,17 +341,25 @@ namespace Round2
                             QueryTriggerInteraction.Ignore
                         );
 
-                        bool overlapObstacle = false;
+                        Collider overlapCollider = null;
                         if (!hitObstacle)
                         {
                             Vector3 proposedCenter = center + movement;
-                            overlapObstacle = Physics.CheckBox(
+                            Collider[] overlaps = Physics.OverlapBox(
                                 proposedCenter,
                                 collisionBoxHalfExtents,
                                 orientation,
                                 obstacleMask,
                                 QueryTriggerInteraction.Ignore
                             );
+                            for (int i = 0; i < overlaps.Length; i++)
+                            {
+                                if (overlaps[i] != internalCollider)
+                                {
+                                    overlapCollider = overlaps[i];
+                                    break;
+                                }
+                            }
                         }
 
                         if (hitObstacle)
@@ -360,9 +368,16 @@ namespace Round2
                             ProcessCollision(hitInfo.collider, hitInfo.point, hitInfo.normal);
                             currentSpeed *= 0.5f; // Dampen speed on collision
                         }
-                        else if (overlapObstacle)
+                        else if (overlapCollider != null)
                         {
-                            Debug.Log("[Boat Collision Blocked] CheckBox overlap detected at proposed position.");
+                            Debug.Log($"[Boat Collision Blocked] Overlap with {overlapCollider.name} | layer: {LayerMask.LayerToName(overlapCollider.gameObject.layer)}");
+                            Vector3 hitPoint = overlapCollider.ClosestPoint(center);
+                            Vector3 normal = (center - hitPoint).normalized;
+                            if (normal.sqrMagnitude < 0.001f)
+                            {
+                                normal = -dir;
+                            }
+                            ProcessCollision(overlapCollider, hitPoint, normal);
                             currentSpeed *= 0.5f; // Dampen speed on collision
                         }
                         else
@@ -603,10 +618,29 @@ namespace Round2
             if (roundController != null && roundController.currentState != global::Round2GameState.Playing) return;
 
             string colName = col.gameObject.name.ToLower();
-            if (colName.Contains("boundary") || colName.Contains("bnd_") || 
-                colName.Contains("realtimeboundaries") || colName.Contains("invisible") || 
-                colName.Contains("mapboundary") || col.isTrigger) 
+            string parentName = col.transform.parent != null ? col.transform.parent.name.ToLower() : "";
+
+            bool isBoundary = colName.Contains("boundary") || parentName.Contains("boundary") ||
+                              colName.Contains("bnd_") || parentName.Contains("bnd_") ||
+                              colName.Contains("realtimeboundaries") || parentName.Contains("realtimeboundaries") ||
+                              colName.Contains("invisible") || parentName.Contains("invisible") ||
+                              colName.Contains("mapboundary") || parentName.Contains("mapboundary") ||
+                              colName.Contains("blocker") || parentName.Contains("blocker") ||
+                              colName.Contains("wall") || parentName.Contains("wall") ||
+                              colName.Contains("trigger") || parentName.Contains("trigger") ||
+                              col.isTrigger;
+
+            if (isBoundary) 
             {
+                if (collisionWarningUI == null)
+                {
+                    collisionWarningUI = GetComponent<Round2CollisionWarningUI>();
+                }
+
+                if (collisionWarningUI != null)
+                {
+                    collisionWarningUI.TriggerBoundaryWarning(hitPoint, normal);
+                }
                 return;
             }
 
