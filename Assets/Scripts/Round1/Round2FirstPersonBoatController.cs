@@ -630,7 +630,7 @@ namespace Round2
                               colName.Contains("trigger") || parentName.Contains("trigger") ||
                               col.isTrigger;
 
-            if (isBoundary) 
+            if (isBoundary)
             {
                 if (collisionWarningUI == null)
                 {
