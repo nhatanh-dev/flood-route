@@ -7314,6 +7314,69 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 4, z: 5}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &94013908
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 94013909}
+  - component: {fileID: 94013910}
+  m_Layer: 0
+  m_Name: _PassengerPoseTemplate
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &94013909
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94013908}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 234372967}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &94013910
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94013908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3489cf7f7a03564ca552f7b8e18bbaa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PassengerSeatedPoseController
+  applyOnEnable: 1
+  keepApplyingInLateUpdate: 1
+  disableAnimatorAfterPose: 1
+  debugLogs: 0
+  rootLocalPositionOffset: {x: 0, y: -0.1, z: -0.02}
+  rootLocalEulerOffset: {x: 0, y: 0, z: 0}
+  rootLocalScaleMultiplier: {x: 0.78, y: 0.78, z: 0.78}
+  hipsEuler: {x: -5, y: 0, z: 0}
+  spineEuler: {x: 8, y: 0, z: 0}
+  chestEuler: {x: 5, y: 0, z: 0}
+  headEuler: {x: -3, y: 0, z: 0}
+  leftUpperLegEuler: {x: 55, y: -4, z: 6}
+  rightUpperLegEuler: {x: 55, y: 4, z: -6}
+  leftLowerLegEuler: {x: -60, y: 0, z: 0}
+  rightLowerLegEuler: {x: -60, y: 0, z: 0}
+  leftUpperArmEuler: {x: 0, y: 0, z: 35}
+  rightUpperArmEuler: {x: 0, y: 0, z: -35}
+  leftLowerArmEuler: {x: -15, y: 0, z: 0}
+  rightLowerArmEuler: {x: -15, y: 0, z: 0}
 --- !u!1 &95325172
 GameObject:
   m_ObjectHideFlags: 0
@@ -15401,6 +15464,7 @@ GameObject:
   - component: {fileID: 234372968}
   - component: {fileID: 234372970}
   - component: {fileID: 234372971}
+  - component: {fileID: 234372972}
   m_Layer: 0
   m_Name: Player_Boat_Root
   m_TagString: Untagged
@@ -15428,6 +15492,8 @@ Transform:
   - {fileID: 1468198407}
   - {fileID: 492573390}
   - {fileID: 691037999}
+  - {fileID: 1878297506}
+  - {fileID: 94013909}
   m_Father: {fileID: 849124689}
   m_LocalEulerAnglesHint: {x: -0.08, y: -0.212, z: 0.232}
 --- !u!114 &234372968
@@ -15509,6 +15575,40 @@ MonoBehaviour:
   underHudSortingOrder: -5
   overHudSortingOrder: 100
   enableDebugLogs: 0
+--- !u!114 &234372972
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 234372966}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7e87d5bdfd01044c96bd3bafef849ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RescuePassengerVisualController
+  passengerSeats:
+  - {fileID: 1020275384}
+  - {fileID: 2023103571}
+  - {fileID: 1260165307}
+  - {fileID: 1786138834}
+  fallbackPassengerPrefab: {fileID: 0}
+  pickupDuration: 0.7
+  pickupArcHeight: 0.3
+  staggerDelay: 0.15
+  seatedScale: 0.6
+  seatedLocalPositionOffset: {x: 0, y: 0, z: 0}
+  seatedLocalEulerOffset: {x: 0, y: 0, z: 0}
+  normalizePassengerHeight: 1
+  targetPassengerHeight: 0.24
+  minPassengerScale: 0.04
+  maxPassengerScale: 0.16
+  applySeatedPose: 1
+  seatedPoseTemplate: {fileID: 94013910}
+  disableAnimatorAfterSeated: 1
+  removeAudioSourcesFromClone: 1
+  removeCollidersFromClone: 1
+  debugLogs: 0
 --- !u!1 &248498188
 GameObject:
   m_ObjectHideFlags: 0
@@ -51401,6 +51501,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3414463147842802935, guid: 4dfd50a1f648e984f8188be70774f281, type: 3}
   m_PrefabInstance: {fileID: 1015826586}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1020275383
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1020275384}
+  m_Layer: 0
+  m_Name: PassengerSeat_01
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1020275384
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1020275383}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
+  m_LocalPosition: {x: 0.08, y: 0.13, z: 0.07}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1878297506}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1021142079
 GameObject:
   m_ObjectHideFlags: 0
@@ -63305,6 +63436,37 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.0008, y: 0.0008, z: 0.0045}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &1260165306
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1260165307}
+  m_Layer: 0
+  m_Name: PassengerSeat_03
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1260165307
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1260165306}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
+  m_LocalPosition: {x: -0.05, y: 0.13, z: 0.07}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1878297506}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1265420112
 GameObject:
   m_ObjectHideFlags: 0
@@ -84952,6 +85114,37 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 6.000078, y: 4.504614, z: 4}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &1786138833
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1786138834}
+  m_Layer: 0
+  m_Name: PassengerSeat_04
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1786138834
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1786138833}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.05, y: 0.13, z: -0.07}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1878297506}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1787090806 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3634891586693419137, guid: 058a5fe1fe9f9664382bb969b2e66d28, type: 3}
@@ -86850,6 +87043,41 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2102999594}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1878297505
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1878297506}
+  m_Layer: 0
+  m_Name: PassengerSeats
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1878297506
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1878297505}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.115, y: 0, z: 0.001}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1020275384}
+  - {fileID: 2023103571}
+  - {fileID: 1260165307}
+  - {fileID: 1786138834}
+  m_Father: {fileID: 234372967}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1878777201
 GameObject:
@@ -99781,6 +100009,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 260825689}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2023103570
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2023103571}
+  m_Layer: 0
+  m_Name: PassengerSeat_02
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2023103571
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2023103570}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.08, y: 0.13, z: -0.07}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1878297506}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2024420180
 PrefabInstance:

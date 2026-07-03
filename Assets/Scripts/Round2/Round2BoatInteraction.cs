@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
@@ -12,12 +13,25 @@ public class Round2BoatInteraction : MonoBehaviour
     public Round2RealtimeRoundController roundController;
     public TextMeshProUGUI txtInteractionPrompt;
 
+    [Header("Visual Passenger Controller")]
+    [Tooltip("Auto-found from Player_Boat_Root if not assigned.")]
+    public RescuePassengerVisualController passengerVisualController;
+
     private Round2RescueZone currentZone = null;
 
     private void Start()
     {
         if (boatMovement == null) boatMovement = GetComponentInParent<Round2.Round2FirstPersonBoatController>();
         if (roundController == null) roundController = FindObjectOfType<Round2RealtimeRoundController>();
+
+        // Auto-find visual controller on Player_Boat_Root
+        if (passengerVisualController == null)
+        {
+            // Walk up to Player_Boat_Root
+            var root = GameObject.Find("Player_Boat_Root");
+            if (root != null)
+                passengerVisualController = root.GetComponent<RescuePassengerVisualController>();
+        }
         
         if (txtInteractionPrompt != null)
         {
@@ -143,10 +157,20 @@ public class Round2BoatInteraction : MonoBehaviour
             }
 
             int toRescue = Mathf.Min(freeCapacity, currentZone.civiliansAvailable);
+
+            // ── Visual: collect source transforms BEFORE OnRescued() hides them ──
+            List<Transform> sourceVisuals = null;
+            if (passengerVisualController != null && toRescue > 0)
+                sourceVisuals = currentZone.GetVisibleCivilianVisuals(toRescue);
+
             currentZone.civiliansAvailable -= toRescue;
             currentZone.OnRescued(toRescue);
             roundController.AddCargo(toRescue);
-            
+
+            // ── Visual: animate clones into boat seats ────────────────────────────
+            if (passengerVisualController != null && toRescue > 0)
+                passengerVisualController.PlayPickupVisual(sourceVisuals, toRescue);
+
             roundController.ShowFeedback($"Đã cứu {toRescue} người dân.");
 
             if (roundController.currentCargo > 0)
@@ -168,7 +192,11 @@ public class Round2BoatInteraction : MonoBehaviour
 
             int delivered = roundController.currentCargo;
             roundController.DeliverCargo(delivered);
-            
+
+            // ── Visual: clear passenger clones from boat seats ────────────────────
+            if (passengerVisualController != null && delivered > 0)
+                passengerVisualController.ClearPassengers(delivered);
+
             roundController.ShowFeedback($"Đã đưa {delivered} người dân đến nơi an toàn.");
 
             if (roundController.civiliansSafe < roundController.totalCivilians)

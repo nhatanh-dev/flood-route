@@ -5281,7 +5281,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 3610e9ea96216344990e1b78af9b8f52, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.318
+      value: 0.184
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 3610e9ea96216344990e1b78af9b8f52, type: 3}
       propertyPath: m_LocalPosition.y
@@ -5289,7 +5289,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 3610e9ea96216344990e1b78af9b8f52, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.391
+      value: -0.221
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 3610e9ea96216344990e1b78af9b8f52, type: 3}
       propertyPath: m_LocalRotation.w
@@ -16535,6 +16535,37 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4c72217d56dcb6749a897a75cad1f34e, type: 3}
+--- !u!1 &260302169
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 260302170}
+  m_Layer: 0
+  m_Name: PassengerSeat_01
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &260302170
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 260302169}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
+  m_LocalPosition: {x: 0.08, y: 0.13, z: 0.07}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 461098402}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &263526802
 GameObject:
   m_ObjectHideFlags: 0
@@ -28761,6 +28792,41 @@ Transform:
   - {fileID: 1836623000}
   m_Father: {fileID: 332156574}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &461098401
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 461098402}
+  m_Layer: 0
+  m_Name: PassengerSeats
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &461098402
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 461098401}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.115, y: 0, z: 0.001}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 260302170}
+  - {fileID: 1682152336}
+  - {fileID: 1382687092}
+  - {fileID: 562478430}
+  m_Father: {fileID: 1284352247}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &461639968
 GameObject:
   m_ObjectHideFlags: 0
@@ -39691,6 +39757,37 @@ Material:
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
+--- !u!1 &562478429
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 562478430}
+  m_Layer: 0
+  m_Name: PassengerSeat_04
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &562478430
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 562478429}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.05, y: 0.13, z: -0.07}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 461098402}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &563853279
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -78537,7 +78634,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 114d242863df061439981d5c4d07925f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.296
+      value: -0.191
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 114d242863df061439981d5c4d07925f, type: 3}
       propertyPath: m_LocalPosition.y
@@ -78545,7 +78642,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 114d242863df061439981d5c4d07925f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.27
+      value: 0.059
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 114d242863df061439981d5c4d07925f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -92167,6 +92264,69 @@ Transform:
   - {fileID: 257768253}
   - {fileID: 1651317174}
   m_Father: {fileID: 658969936}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1119313297
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1119313299}
+  - component: {fileID: 1119313298}
+  m_Layer: 0
+  m_Name: _PassengerPoseTemplate
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &1119313298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1119313297}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3489cf7f7a03564ca552f7b8e18bbaa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PassengerSeatedPoseController
+  applyOnEnable: 1
+  keepApplyingInLateUpdate: 1
+  disableAnimatorAfterPose: 1
+  debugLogs: 0
+  rootLocalPositionOffset: {x: 0, y: -0.1, z: -0.02}
+  rootLocalEulerOffset: {x: 0, y: 0, z: 0}
+  rootLocalScaleMultiplier: {x: 0.78, y: 0.78, z: 0.78}
+  hipsEuler: {x: -5, y: 0, z: 0}
+  spineEuler: {x: 8, y: 0, z: 0}
+  chestEuler: {x: 5, y: 0, z: 0}
+  headEuler: {x: -3, y: 0, z: 0}
+  leftUpperLegEuler: {x: 55, y: -4, z: 6}
+  rightUpperLegEuler: {x: 55, y: 4, z: -6}
+  leftLowerLegEuler: {x: -60, y: 0, z: 0}
+  rightLowerLegEuler: {x: -60, y: 0, z: 0}
+  leftUpperArmEuler: {x: 0, y: 0, z: 35}
+  rightUpperArmEuler: {x: 0, y: 0, z: -35}
+  leftLowerArmEuler: {x: -15, y: 0, z: 0}
+  rightLowerArmEuler: {x: -15, y: 0, z: 0}
+--- !u!4 &1119313299
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1119313297}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1284352247}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1120298316
 GameObject:
@@ -109852,6 +110012,7 @@ GameObject:
   - component: {fileID: 1284352252}
   - component: {fileID: 1284352251}
   - component: {fileID: 1284352253}
+  - component: {fileID: 1284352254}
   m_Layer: 0
   m_Name: Player_Boat_Root
   m_TagString: Untagged
@@ -109879,6 +110040,8 @@ Transform:
   - {fileID: 539623080}
   - {fileID: 708197369}
   - {fileID: 2120098968}
+  - {fileID: 461098402}
+  - {fileID: 1119313299}
   m_Father: {fileID: 1263156617}
   m_LocalEulerAnglesHint: {x: -0.08, y: -0.212, z: 0.232}
 --- !u!114 &1284352248
@@ -109987,6 +110150,7 @@ MonoBehaviour:
   boatMovement: {fileID: 0}
   roundController: {fileID: 0}
   txtInteractionPrompt: {fileID: 358755593}
+  passengerVisualController: {fileID: 1284352254}
 --- !u!54 &1284352252
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -110039,6 +110203,40 @@ MonoBehaviour:
   boundaryLineHeight: 0.2
   boundaryLineWidth: 0.05
   enableDebugLogs: 0
+--- !u!114 &1284352254
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1284352246}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7e87d5bdfd01044c96bd3bafef849ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RescuePassengerVisualController
+  passengerSeats:
+  - {fileID: 260302170}
+  - {fileID: 1682152336}
+  - {fileID: 1382687092}
+  - {fileID: 562478430}
+  fallbackPassengerPrefab: {fileID: 0}
+  pickupDuration: 0.7
+  pickupArcHeight: 0.28
+  staggerDelay: 0.15
+  seatedScale: 0.1
+  seatedLocalPositionOffset: {x: 0, y: 0, z: 0}
+  seatedLocalEulerOffset: {x: 0, y: 0, z: 0}
+  normalizePassengerHeight: 1
+  targetPassengerHeight: 0.24
+  minPassengerScale: 0.04
+  maxPassengerScale: 0.16
+  applySeatedPose: 1
+  seatedPoseTemplate: {fileID: 1119313298}
+  disableAnimatorAfterSeated: 1
+  removeAudioSourcesFromClone: 1
+  removeCollidersFromClone: 1
+  debugLogs: 0
 --- !u!1001 &1284582175
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -114992,7 +115190,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: bdbf5804fa594894eb42b44406b221d4, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.213269
+      value: -0.113
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: bdbf5804fa594894eb42b44406b221d4, type: 3}
       propertyPath: m_LocalPosition.y
@@ -115000,7 +115198,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: bdbf5804fa594894eb42b44406b221d4, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.18788034
+      value: -0.18
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: bdbf5804fa594894eb42b44406b221d4, type: 3}
       propertyPath: m_LocalRotation.w
@@ -115267,6 +115465,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1382133843}
   m_CullTransparentMesh: 1
+--- !u!1 &1382687091
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1382687092}
+  m_Layer: 0
+  m_Name: PassengerSeat_03
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1382687092
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1382687091}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
+  m_LocalPosition: {x: -0.05, y: 0.13, z: 0.07}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 461098402}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1382939264
 GameObject:
   m_ObjectHideFlags: 0
@@ -141070,6 +141299,37 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &1682152335
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1682152336}
+  m_Layer: 0
+  m_Name: PassengerSeat_02
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1682152336
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682152335}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.08, y: 0.13, z: -0.07}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 461098402}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1684417440
 GameObject:
   m_ObjectHideFlags: 0
@@ -159168,7 +159428,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 114d242863df061439981d5c4d07925f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.4659881
+      value: 0.223
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 114d242863df061439981d5c4d07925f, type: 3}
       propertyPath: m_LocalPosition.y
@@ -159176,7 +159436,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 114d242863df061439981d5c4d07925f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.28962693
+      value: 0.313
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 114d242863df061439981d5c4d07925f, type: 3}
       propertyPath: m_LocalRotation.w

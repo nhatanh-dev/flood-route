@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum Round2ZoneType
@@ -11,6 +12,44 @@ public class Round2RescueZone : MonoBehaviour
     public Round2ZoneType zoneType = Round2ZoneType.Rescue;
     public string zoneName = "Khu vực cứu hộ";
     public int civiliansAvailable = 2;
+
+    // ── Excluded name fragments ────────────────────────────────────────────────
+    private static readonly string[] s_ExcludeNames =
+        { "FloatingText", "BND_", "RescueVoiceCue", "Zone", "Anchor" };
+
+    /// <summary>
+    /// Returns up to <paramref name="maxCount"/> active civilian Transforms from
+    /// this zone, prioritising objects with Animator / SkinnedMeshRenderer.
+    /// Call this BEFORE OnRescued() so the objects are still active.
+    /// </summary>
+    public List<Transform> GetVisibleCivilianVisuals(int maxCount)
+    {
+        var result = new List<Transform>();
+        if (maxCount <= 0) return result;
+
+        foreach (Transform child in transform)
+        {
+            if (result.Count >= maxCount) break;
+            if (!child.gameObject.activeSelf) continue;
+            if (IsExcluded(child.name)) continue;
+
+            // Accept if it has any render/animation component
+            bool hasVisual = child.GetComponentInChildren<Animator>(true) != null
+                          || child.GetComponentInChildren<SkinnedMeshRenderer>(true) != null
+                          || child.GetComponentInChildren<MeshRenderer>(true) != null;
+
+            if (hasVisual)
+                result.Add(child);
+        }
+        return result;
+    }
+
+    private static bool IsExcluded(string name)
+    {
+        foreach (var fragment in s_ExcludeNames)
+            if (name.Contains(fragment)) return true;
+        return false;
+    }
 
     public void OnRescued(int count)
     {

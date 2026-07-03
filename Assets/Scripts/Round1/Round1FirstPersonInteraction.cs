@@ -20,6 +20,7 @@ namespace Round1
 
         // ── cached refs ───────────────────────────────────────────────────────
         private Round1RescueController rescueController;
+        public RescuePassengerVisualController passengerVisualController;
         private R1RealtimeRoundController realtimeController;
         private Round1DebrisController debrisController;
         private Round1SceneReferences  refs;
@@ -61,6 +62,11 @@ namespace Round1
         void Start()
         {
             rescueController = FindAnyObjectByType<Round1RescueController>();
+            if (passengerVisualController == null)
+            {
+                var root = GameObject.Find("Player_Boat_Root");
+                if (root != null) passengerVisualController = root.GetComponent<RescuePassengerVisualController>();
+            }
             realtimeController = FindAnyObjectByType<R1RealtimeRoundController>();
             debrisController = FindAnyObjectByType<Round1DebrisController>();
             refs             = FindAnyObjectByType<Round1SceneReferences>();
@@ -181,7 +187,17 @@ namespace Round1
                             {
                                 ShowFeedback("Đã cứu 1 người dân.");
                                 if (nhaBaBadgeRoot != null) nhaBaBadgeRoot.SetActive(false);
-                                if (nhaBaPeopleRoot != null) nhaBaPeopleRoot.SetActive(false);
+                                if (nhaBaPeopleRoot != null) 
+                                {
+                                    if (passengerVisualController != null)
+                                    {
+                                        var sources = new System.Collections.Generic.List<Transform>();
+                                        foreach (Transform child in nhaBaPeopleRoot.transform)
+                                            if (child.gameObject.activeSelf) sources.Add(child);
+                                        passengerVisualController.PlayPickupVisual(sources, 1);
+                                    }
+                                    nhaBaPeopleRoot.SetActive(false);
+                                }
                                 prompt = ""; // cleared
                             }
                         }
@@ -205,7 +221,17 @@ namespace Round1
                             {
                                 ShowFeedback("Đã cứu 2 người dân.");
                                 if (nhaTuBadgeRoot != null) nhaTuBadgeRoot.SetActive(false);
-                                if (nhaTuPeopleRoot != null) nhaTuPeopleRoot.SetActive(false);
+                                if (nhaTuPeopleRoot != null) 
+                                {
+                                    if (passengerVisualController != null)
+                                    {
+                                        var sources = new System.Collections.Generic.List<Transform>();
+                                        foreach (Transform child in nhaTuPeopleRoot.transform)
+                                            if (child.gameObject.activeSelf) sources.Add(child);
+                                        passengerVisualController.PlayPickupVisual(sources, 2);
+                                    }
+                                    nhaTuPeopleRoot.SetActive(false);
+                                }
                                 prompt = ""; // cleared
                             }
                         }
@@ -235,6 +261,7 @@ namespace Round1
                                 if (realtimeController.TryDropOff())
                                 {
                                     ShowFeedback($"Đã đưa {droppedOff} người dân đến nơi an toàn.");
+                                    if (passengerVisualController != null) passengerVisualController.ClearPassengers(droppedOff);
                                     prompt = "";
                                 }
                             }
