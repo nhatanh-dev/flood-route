@@ -34,16 +34,16 @@ public class PassengerSeatedPoseController : MonoBehaviour
     public Vector3 headEuler       = new Vector3(-3f,   0f,   0f);
 
     [Header("Legs")]
-    public Vector3 leftUpperLegEuler  = new Vector3(55f,  -4f,  6f);
-    public Vector3 rightUpperLegEuler = new Vector3(55f,   4f, -6f);
+    public Vector3 leftUpperLegEuler  = new Vector3(55f,   4f, -6f);
+    public Vector3 rightUpperLegEuler = new Vector3(55f,  -4f,  6f);
     public Vector3 leftLowerLegEuler  = new Vector3(-60f,   0f,   0f);
     public Vector3 rightLowerLegEuler = new Vector3(-60f,   0f,   0f);
 
     [Header("Arms")]
-    public Vector3 leftUpperArmEuler  = new Vector3(0f,    0f,  35f);
-    public Vector3 rightUpperArmEuler = new Vector3(0f,    0f, -35f);
-    public Vector3 leftLowerArmEuler  = new Vector3(-15f,    0f,  0f);
-    public Vector3 rightLowerArmEuler = new Vector3(-15f,    0f,  0f);
+    public Vector3 leftUpperArmEuler  = new Vector3(0f,    0f, -20f);
+    public Vector3 rightUpperArmEuler = new Vector3(0f,    0f,  20f);
+    public Vector3 leftLowerArmEuler  = new Vector3(-20f,   0f,   0f);
+    public Vector3 rightLowerArmEuler = new Vector3(-20f,   0f,   0f);
 
     // ── Internal ──────────────────────────────────────────────────────────────
     private Animator  _animator;
@@ -119,10 +119,10 @@ public class PassengerSeatedPoseController : MonoBehaviour
 
         CaptureRestPose();
 
-        // Optionally disable Animator so it no longer fights our overrides
+        // Optionally pause Animator so it no longer advances (avoids Unity Editor Graph bug)
         if (disableAnimatorAfterPose)
         {
-            _animator.enabled = false;
+            _animator.speed = 0f;
             _animatorDisabled = true;
         }
 

@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2296993976260241743}
   - component: {fileID: 6187696331207144722}
+  - component: {fileID: -5619148949020923586}
   m_Layer: 2
   m_Name: PF_PRU_Civilian_Grandma_LayingMildCough
   m_TagString: Untagged
@@ -55,6 +56,37 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &-5619148949020923586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9213100866785104199}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3489cf7f7a03564ca552f7b8e18bbaa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PassengerSeatedPoseController
+  applyOnEnable: 1
+  keepApplyingInLateUpdate: 1
+  disableAnimatorAfterPose: 1
+  debugLogs: 0
+  rootLocalPositionOffset: {x: 0, y: -0.12, z: -0.03}
+  rootLocalEulerOffset: {x: 0, y: 0, z: 0}
+  rootLocalScaleMultiplier: {x: 0.78, y: 0.78, z: 0.78}
+  hipsEuler: {x: 90, y: 0, z: 0}
+  spineEuler: {x: 8, y: 0, z: 0}
+  chestEuler: {x: 5, y: 0, z: 0}
+  headEuler: {x: -3, y: 0, z: 0}
+  leftUpperLegEuler: {x: 70, y: -4, z: 6}
+  rightUpperLegEuler: {x: 70, y: 4, z: -6}
+  leftLowerLegEuler: {x: -60, y: 0, z: 0}
+  rightLowerLegEuler: {x: -60, y: 0, z: 0}
+  leftUpperArmEuler: {x: 8, y: 0, z: 35}
+  rightUpperArmEuler: {x: 8, y: 0, z: -35}
+  leftLowerArmEuler: {x: -18, y: 0, z: 8}
+  rightLowerArmEuler: {x: -18, y: 0, z: -8}
 --- !u!1001 &6518431386794511506
 PrefabInstance:
   m_ObjectHideFlags: 0

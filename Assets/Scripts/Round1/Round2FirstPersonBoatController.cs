@@ -20,20 +20,32 @@ namespace Round2
         public Camera playerCamera;
 
         [Header("Boat Movement")]
-        public float moveSpeed = 1.35f;
-        public float reverseSpeed = 0.5f;
-        public float turnSpeed = 62f;
-        public float acceleration = 2.8f;
+        public float moveSpeed = 1.0f;
+        public float reverseSpeed = 0.45f;
+        public float turnSpeed = 50f;
+        public float acceleration = 1.8f;
         public float waterY = 0.88f;
 
         [Tooltip("Natural slowdown when no input is pressed")]
-        public float waterDrag = 1.5f;
+        public float waterDrag = 1.2f;
         [Tooltip("Stronger deceleration when braking (pressing S while moving forward)")]
-        public float brakeDeceleration = 3.8f;
+        public float brakeDeceleration = 2.2f;
         [Tooltip("Minimum turn factor when at zero speed")]
-        public float minimumTurnFactor = 0.35f;
+        public float minimumTurnFactor = 0.25f;
         [Tooltip("Maximum turn factor at full speed")]
         public float maxTurnFactor = 1.0f;
+
+        [Header("Passenger Load Effect")]
+        [Tooltip("Enable physics penalty when carrying passengers.")]
+        public bool enablePassengerLoadEffect = true;
+        [Tooltip("Max speed reduction when boat is fully loaded (0.2 = 20% slower).")]
+        [Range(0f, 0.5f)] public float maxSpeedPenalty = 0.20f;
+        [Tooltip("Max acceleration reduction when fully loaded (0.25 = 25% slower to accelerate).")]
+        [Range(0f, 0.6f)] public float maxAccelPenalty = 0.25f;
+        [Tooltip("Max turn speed reduction when fully loaded (0.25 = 25% harder to turn).")]
+        [Range(0f, 0.5f)] public float maxTurnPenalty = 0.25f;
+        [Tooltip("Water drag increase when fully loaded (0.15 = 15% more inertia).")]
+        [Range(0f, 0.4f)] public float maxDragIncrease = 0.15f;
 
         [Header("Boat Direction Calibration")]
         public BoatForwardAxis boatNoseAxis = BoatForwardAxis.NegativeX;
@@ -69,7 +81,7 @@ namespace Round2
 
         [Header("Durability / Damage")]
         public bool enableCollisionDamage = true;
-        public float minDamageSpeed = 0.85f;
+        public float minDamageSpeed = 0.50f;  // ~50% of moveSpeed (1.0)
         public int collisionDamageAmount = 1;
         public float damageCooldown = 1.0f;
         public float damageSpeedReduction = 0.25f;
@@ -79,6 +91,10 @@ namespace Round2
         public Round2CollisionWarningUI collisionWarningUI;
 
         private BoxCollider internalCollider;
+
+        // ── Passenger load state ───────────────────────────────────────────────
+        /// <summary>Current 0..1 load ratio based on cargo/capacity.</summary>
+        public float currentLoadFactor { get; private set; }
 
         public float currentSpeed;
         public float CurrentSpeedAbs => Mathf.Abs(currentSpeed);
@@ -148,6 +164,13 @@ namespace Round2
             {
                 collisionWarningUI = GetComponent<Round2CollisionWarningUI>();
             }
+        }
+
+        /// <summary>Returns effective stat scaled by the passenger load penalty.</summary>
+        private float ApplyLoad(float baseStat, float maxPenalty)
+        {
+            if (!enablePassengerLoadEffect || roundController == null) return baseStat;
+            return baseStat * Mathf.Lerp(1f, 1f - maxPenalty, currentLoadFactor);
         }
 
         private void Update()
@@ -268,6 +291,23 @@ namespace Round2
             if (kb == null)
                 return;
 
+            // ── Passenger load factor (0 = empty, 1 = full) ────────────────────
+            if (enablePassengerLoadEffect && roundController != null)
+            {
+                int cap = Mathf.Max(1, roundController.boatCapacity);
+                currentLoadFactor = Mathf.Clamp01((float)roundController.currentCargo / cap);
+            }
+            else
+            {
+                currentLoadFactor = 0f;
+            }
+
+            // Effective stats adjusted by passenger weight
+            float effMoveSpeed    = ApplyLoad(moveSpeed,    maxSpeedPenalty);
+            float effAcceleration = ApplyLoad(acceleration, maxAccelPenalty);
+            float effTurnSpeed    = ApplyLoad(turnSpeed,    maxTurnPenalty);
+            float effWaterDrag    = waterDrag * Mathf.Lerp(1f, 1f + maxDragIncrease, currentLoadFactor);
+
             float forwardInput = 0f;
 
             if (kb.wKey.isPressed || kb.upArrowKey.isPressed)
@@ -287,18 +327,18 @@ namespace Round2
             if (invertTurn)
                 turnInput *= -1f;
 
-            float accelRate = waterDrag;
+            float accelRate = effWaterDrag;
             float targetSpeed = 0f;
 
             if (forwardInput > 0f)
             {
-                targetSpeed = moveSpeed;
-                accelRate = (currentSpeed < 0f) ? brakeDeceleration : acceleration;
+                targetSpeed = effMoveSpeed;
+                accelRate = (currentSpeed < 0f) ? brakeDeceleration : effAcceleration;
             }
             else if (forwardInput < 0f)
             {
                 targetSpeed = -reverseSpeed;
-                accelRate = (currentSpeed > 0f) ? brakeDeceleration : acceleration;
+                accelRate = (currentSpeed > 0f) ? brakeDeceleration : effAcceleration;
             }
 
             currentSpeed = Mathf.MoveTowards(
@@ -309,9 +349,9 @@ namespace Round2
 
             if (Mathf.Abs(turnInput) > 0.01f)
             {
-                float speedRatio = Mathf.Clamp01(Mathf.Abs(currentSpeed) / moveSpeed);
+                float speedRatio = Mathf.Clamp01(Mathf.Abs(currentSpeed) / Mathf.Max(0.01f, effMoveSpeed));
                 float currentTurnFactor = Mathf.Lerp(minimumTurnFactor, maxTurnFactor, speedRatio);
-                TryRotate(turnInput * turnSpeed * currentTurnFactor * Time.deltaTime);
+                TryRotate(turnInput * effTurnSpeed * currentTurnFactor * Time.deltaTime);
             }
 
             Vector3 moveDirection = GetBoatForwardDirection();

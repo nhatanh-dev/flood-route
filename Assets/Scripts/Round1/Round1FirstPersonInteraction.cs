@@ -16,7 +16,7 @@ namespace Round1
     {
         [Header("Detection")]
         public float interactRadius = 6f;
-        public float rescueMaxInteractSpeed = 0.35f;
+        public float rescueMaxInteractSpeed = 0.32f;  // ~25% of moveSpeed (1.3)
 
         // ── cached refs ───────────────────────────────────────────────────────
         private Round1RescueController rescueController;
@@ -95,7 +95,7 @@ namespace Round1
 
             if (txtContextToast != null)
             {
-                contextToastGroup = txtContextToast.GetComponentInParent<CanvasGroup>();
+                contextToastGroup = txtContextToast.transform.parent != null ? txtContextToast.transform.parent.GetComponent<CanvasGroup>() : txtContextToast.GetComponent<CanvasGroup>();
                 contextToastAccent = FindImage("IMG_R1_ToastAccent");
                 if (txtContextToast.transform.parent != null)
                     txtContextToast.transform.parent.gameObject.SetActive(false);
@@ -166,8 +166,9 @@ namespace Round1
             string prompt = "";
 
             float boatSpeed = 0f;
-            var boatCtrl = GetComponent<Round1FirstPersonBoatController>();
+            var boatCtrl = GetComponentInParent<Round1FirstPersonBoatController>();
             if (boatCtrl != null) boatSpeed = Mathf.Abs(boatCtrl.currentSpeed);
+            else Debug.LogWarning("[R1Interaction] Round1FirstPersonBoatController not found in parent! Speed check disabled.");
             float maxInteractSpeed = rescueMaxInteractSpeed;
 
             int cargo = realtimeController != null ? realtimeController.currentCargo : 0;

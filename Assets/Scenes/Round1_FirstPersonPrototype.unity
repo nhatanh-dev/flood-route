@@ -7259,8 +7259,16 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cad6b406c2e9eee49982a0317a0bc510, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1278085787}
   m_SourcePrefab: {fileID: 100100000, guid: cad6b406c2e9eee49982a0317a0bc510, type: 3}
+--- !u!1 &83153030 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: cad6b406c2e9eee49982a0317a0bc510, type: 3}
+  m_PrefabInstance: {fileID: 83153029}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &83699583
 GameObject:
   m_ObjectHideFlags: 0
@@ -7369,14 +7377,14 @@ MonoBehaviour:
   spineEuler: {x: 8, y: 0, z: 0}
   chestEuler: {x: 5, y: 0, z: 0}
   headEuler: {x: -3, y: 0, z: 0}
-  leftUpperLegEuler: {x: 55, y: -4, z: 6}
-  rightUpperLegEuler: {x: 55, y: 4, z: -6}
+  leftUpperLegEuler: {x: 55, y: 4, z: -6}
+  rightUpperLegEuler: {x: 55, y: -4, z: 6}
   leftLowerLegEuler: {x: -60, y: 0, z: 0}
   rightLowerLegEuler: {x: -60, y: 0, z: 0}
-  leftUpperArmEuler: {x: 0, y: 0, z: 35}
-  rightUpperArmEuler: {x: 0, y: 0, z: -35}
-  leftLowerArmEuler: {x: -15, y: 0, z: 0}
-  rightLowerArmEuler: {x: -15, y: 0, z: 0}
+  leftUpperArmEuler: {x: 0, y: 0, z: -20}
+  rightUpperArmEuler: {x: 0, y: 0, z: 20}
+  leftLowerArmEuler: {x: -20, y: 0, z: 0}
+  rightLowerArmEuler: {x: -20, y: 0, z: 0}
 --- !u!1 &95325172
 GameObject:
   m_ObjectHideFlags: 0
@@ -15512,11 +15520,15 @@ MonoBehaviour:
   cameraRig: {fileID: 1922489487}
   pitchPivot: {fileID: 0}
   playerCamera: {fileID: 618040808}
-  moveSpeed: 2.8
-  reverseSpeed: 1.2
-  turnSpeed: 60
-  acceleration: 3
+  moveSpeed: 1.3
+  reverseSpeed: 0.6
+  turnSpeed: 45
+  acceleration: 1.5
   waterY: 0.88
+  waterDrag: 1.8
+  brakeDeceleration: 2.5
+  minimumTurnFactor: 0.25
+  maxTurnFactor: 1
   boatNoseAxis: 3
   invertForward: 1
   invertTurn: 0
@@ -15600,9 +15612,9 @@ MonoBehaviour:
   seatedLocalPositionOffset: {x: 0, y: 0, z: 0}
   seatedLocalEulerOffset: {x: 0, y: 0, z: 0}
   normalizePassengerHeight: 1
-  targetPassengerHeight: 0.24
-  minPassengerScale: 0.04
-  maxPassengerScale: 0.16
+  targetPassengerHeight: 0.65
+  minPassengerScale: 0.1
+  maxPassengerScale: 0.25
   applySeatedPose: 1
   seatedPoseTemplate: {fileID: 94013910}
   disableAnimatorAfterSeated: 1
@@ -51525,8 +51537,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1020275383}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
-  m_LocalPosition: {x: 0.08, y: 0.13, z: 0.07}
+  m_LocalRotation: {x: 0, y: -1, z: 0, w: -0.00000004371139}
+  m_LocalPosition: {x: 0.04, y: 0.0501, z: 0.074}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -54051,7 +54063,7 @@ MonoBehaviour:
   collisionSound: {fileID: 8300000, guid: ecfb9fbbcac31cb44918996d50543132, type: 3}
   enableCollisionDamage: 1
   collisionDamage: 1
-  minDamageSpeed: 1.5
+  minDamageSpeed: 0.65
   damageCooldown: 1
   collisionDamageFeedbackDuration: 1.2
 --- !u!4 &1098522601
@@ -63460,8 +63472,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1260165306}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
-  m_LocalPosition: {x: -0.05, y: 0.13, z: 0.07}
+  m_LocalRotation: {x: 0, y: -1, z: 0, w: -0.00000004371139}
+  m_LocalPosition: {x: -0.089, y: 0.0336, z: 0.08}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -63721,6 +63733,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: cad6b406c2e9eee49982a0317a0bc510, type: 3}
   m_PrefabInstance: {fileID: 83153029}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1278085787
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 83153030}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3489cf7f7a03564ca552f7b8e18bbaa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PassengerSeatedPoseController
+  applyOnEnable: 0
+  keepApplyingInLateUpdate: 1
+  disableAnimatorAfterPose: 1
+  debugLogs: 0
+  rootLocalPositionOffset: {x: 0, y: -0.1, z: -0.02}
+  rootLocalEulerOffset: {x: 0, y: 0, z: 0}
+  rootLocalScaleMultiplier: {x: 0.78, y: 0.78, z: 0.78}
+  hipsEuler: {x: 90, y: 0, z: 0}
+  spineEuler: {x: 8, y: 0, z: 0}
+  chestEuler: {x: 5, y: 0, z: 0}
+  headEuler: {x: -3, y: 0, z: 0}
+  leftUpperLegEuler: {x: 55, y: 4, z: -6}
+  rightUpperLegEuler: {x: 55, y: -4, z: 6}
+  leftLowerLegEuler: {x: -60, y: 0, z: 0}
+  rightLowerLegEuler: {x: -60, y: 0, z: 0}
+  leftUpperArmEuler: {x: 0, y: 0, z: -20}
+  rightUpperArmEuler: {x: 0, y: 0, z: 20}
+  leftLowerArmEuler: {x: -20, y: 0, z: 0}
+  rightLowerArmEuler: {x: -20, y: 0, z: 0}
 --- !u!4 &1278436897 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 75bcf438f2f581545a87e66969247855, type: 3}
@@ -66732,6 +66775,135 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1371214295}
   m_CullTransparentMesh: 1
+--- !u!1 &1371885559
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1371885561}
+  - component: {fileID: 1371885560}
+  m_Layer: 0
+  m_Name: R1_BGM_Music
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!82 &1371885560
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371885559}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 68e45481fcda41248b0b0a50a30a4d47, type: 3}
+  m_PlayOnAwake: 1
+  m_Volume: 0.18
+  m_Pitch: 1
+  Loop: 1
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!4 &1371885561
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371885559}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1372834678
 GameObject:
   m_ObjectHideFlags: 0
@@ -85139,7 +85311,7 @@ Transform:
   m_GameObject: {fileID: 1786138833}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.05, y: 0.13, z: -0.07}
+  m_LocalPosition: {x: -0.0973, y: 0.0249, z: -0.1005}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -87069,7 +87241,7 @@ Transform:
   m_GameObject: {fileID: 1878297505}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.115, y: 0, z: 0.001}
+  m_LocalPosition: {x: 0.152, y: 0, z: 0.001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -92803,7 +92975,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Round1.Round1FirstPersonInteraction
   interactRadius: 8
-  rescueMaxInteractSpeed: 0.35
+  rescueMaxInteractSpeed: 0.32
+  passengerVisualController: {fileID: 0}
 --- !u!54 &1922489489
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -100035,7 +100208,7 @@ Transform:
   m_GameObject: {fileID: 2023103570}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.08, y: 0.13, z: -0.07}
+  m_LocalPosition: {x: 0.04, y: 0.0456, z: -0.096}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -108166,3 +108339,4 @@ SceneRoots:
   - {fileID: 943496598}
   - {fileID: 1317503432}
   - {fileID: 1321132192}
+  - {fileID: 1371885561}

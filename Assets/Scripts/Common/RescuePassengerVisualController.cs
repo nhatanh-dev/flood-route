@@ -303,12 +303,13 @@ public class RescuePassengerVisualController : MonoBehaviour
         // ── Apply seated bone pose ─────────────────────────────────────────────
         if (applySeatedPose)
         {
+            bool hasPredefinedPose = clone.GetComponent<PassengerSeatedPoseController>() != null;
             var poseCtrl = clone.GetComponent<PassengerSeatedPoseController>();
             if (poseCtrl == null)
                 poseCtrl = clone.AddComponent<PassengerSeatedPoseController>();
 
-            // Copy tuning values from template if one is assigned
-            if (seatedPoseTemplate != null)
+            // Copy tuning values from template if one is assigned AND clone didn't already have one
+            if (seatedPoseTemplate != null && !hasPredefinedPose)
             {
                 poseCtrl.disableAnimatorAfterPose  = seatedPoseTemplate.disableAnimatorAfterPose;
                 poseCtrl.keepApplyingInLateUpdate  = seatedPoseTemplate.keepApplyingInLateUpdate;
@@ -330,17 +331,39 @@ public class RescuePassengerVisualController : MonoBehaviour
                 poseCtrl.debugLogs          = seatedPoseTemplate.debugLogs;
             }
 
-            // applyOnEnable fired automatically on AddComponent, so Initialise() has already run.
-            // We just need to force the new template values to apply now.
+            // ── Name-based pose override for special characters ────────────────
+            // The laying grandma's FBX is a generated prefab that cannot receive
+            // component overrides. We detect her by name and force the correct hips
+            // rotation to make her sit upright after being rescued.
+            if (clone.name.Contains("grandma_tpose@Laying") || clone.name.Contains("Grandma_Laying"))
+            {
+                poseCtrl.rootLocalPositionOffset  = new Vector3(0f, -0.1f, -0.02f);
+                poseCtrl.rootLocalScaleMultiplier = new Vector3(0.78f, 0.78f, 0.78f);
+                poseCtrl.hipsEuler      = new Vector3(90f, 0f, 0f);
+                poseCtrl.spineEuler     = new Vector3(8f,  0f, 0f);
+                poseCtrl.chestEuler     = new Vector3(5f,  0f, 0f);
+                poseCtrl.headEuler      = new Vector3(-3f, 0f, 0f);
+                poseCtrl.leftUpperLegEuler  = new Vector3(70f, -4f,  6f);
+                poseCtrl.rightUpperLegEuler = new Vector3(70f,  4f, -6f);
+                poseCtrl.leftLowerLegEuler  = new Vector3(-60f, 0f, 0f);
+                poseCtrl.rightLowerLegEuler = new Vector3(-60f, 0f, 0f);
+                poseCtrl.leftUpperArmEuler  = new Vector3(8f,   0f, -20f);
+                poseCtrl.rightUpperArmEuler = new Vector3(8f,   0f,  20f);
+                poseCtrl.leftLowerArmEuler  = new Vector3(-18f, 0f,  8f);
+                poseCtrl.rightLowerArmEuler = new Vector3(-18f, 0f, -8f);
+                if (debugLogs) Debug.Log($"[RescuePassengerVC] Applied GRANDMA LAYING override to {clone.name}.");
+            }
+
+            poseCtrl.enabled = true;
             poseCtrl.ForceApplyPose();
 
             if (debugLogs) Debug.Log($"[RescuePassengerVC] SeatedPose applied to {clone.name}.");
         }
         else if (disableAnimatorAfterSeated)
         {
-            // Legacy path
+            // Legacy path: pause animator instead of disabling to avoid Unity Editor bugs
             var anim = clone.GetComponent<Animator>();
-            if (anim != null) anim.enabled = false;
+            if (anim != null) anim.speed = 0f;
         }
 
         // Replace placeholder in list

@@ -6654,8 +6654,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MenuMusicManager
   audioSource: {fileID: 0}
-  musicClip: {fileID: 8300000, guid: 68e45481fcda41248b0b0a50a30a4d47, type: 3}
-  maxVolume: 0.35
+  musicClip: {fileID: 8300000, guid: a974058651d4b0747adece0771dcd374, type: 3}
+  maxVolume: 0.55
   fadeInDuration: 0.45
   fadeOutDuration: 0.8
   freshStartOffsetSeconds: 4.2
@@ -6670,9 +6670,9 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 68e45481fcda41248b0b0a50a30a4d47, type: 3}
+  m_Resource: {fileID: 8300000, guid: a974058651d4b0747adece0771dcd374, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.55
   m_Pitch: 1
   Loop: 1
   Mute: 0

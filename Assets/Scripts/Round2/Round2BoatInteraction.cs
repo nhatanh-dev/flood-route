@@ -6,7 +6,7 @@ using TMPro;
 public class Round2BoatInteraction : MonoBehaviour
 {
     [Header("Configuration")]
-    public float maxInteractSpeed = 0.35f;
+    public float maxInteractSpeed = 0.25f;  // ~25% of moveSpeed (1.0)
     
     [Header("References")]
     public Round2.Round2FirstPersonBoatController boatMovement;

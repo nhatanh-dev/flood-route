@@ -71,7 +71,8 @@ namespace Round1
         public AudioClip collisionSound;
         public bool enableCollisionDamage = true;
         public int collisionDamage = 1;
-        public float minDamageSpeed = 1.5f;
+        public float rescueMaxInteractSpeed = 0.32f;  // ~25% of moveSpeed (1.3)
+        public float minDamageSpeed = 0.65f;  // ~50% of moveSpeed (1.3)
         public float damageCooldown = 1.0f;
         public float collisionDamageFeedbackDuration = 1.2f;
 
