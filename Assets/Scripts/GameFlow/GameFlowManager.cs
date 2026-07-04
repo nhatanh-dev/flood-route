@@ -96,6 +96,9 @@ public class GameFlowManager : MonoBehaviour
 
     void Start()
     {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
         if (menuMusicManager != null)
         {
             menuMusicManager.PlayFromStartWithFade();

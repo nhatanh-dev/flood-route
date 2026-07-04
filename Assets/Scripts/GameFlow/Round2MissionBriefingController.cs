@@ -26,6 +26,9 @@ public sealed class Round2MissionBriefingController : MonoBehaviour
 
     private void Start()
     {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
         if (menuMusicManager != null)
         {
             menuMusicManager.PlayFromStartWithFade();

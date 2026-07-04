@@ -5,6 +5,12 @@ public sealed class MainMenuManager : MonoBehaviour
 {
     [SerializeField] private string gameplaySceneName = "SampleScene";
 
+    private void Start()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
     public void StartGame()
     {
         if (!string.IsNullOrEmpty(gameplaySceneName))

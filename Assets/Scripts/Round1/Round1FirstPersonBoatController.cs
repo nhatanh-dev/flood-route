@@ -175,7 +175,9 @@ namespace Round1
             Keyboard kb = Keyboard.current;
             Mouse mouse = Mouse.current;
 
-            if (kb != null && kb.escapeKey.wasPressedThisFrame)
+            if (kb != null
+                && kb.pKey.wasPressedThisFrame
+                && FindAnyObjectByType<PauseMenuController>() == null)
             {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
@@ -183,8 +185,19 @@ namespace Round1
 
             if (mouse != null && mouse.leftButton.wasPressedThisFrame)
             {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
+                if (_r1Controller == null)
+                {
+                    _r1Controller = FindAnyObjectByType<R1RealtimeRoundController>();
+                }
+                var intro = FindAnyObjectByType<Round1IntroController>();
+                bool isIntroActive = intro != null && intro.IsIntroActive;
+                bool isGameOver = _r1Controller != null && _r1Controller.IsGameOver;
+
+                if (!isIntroActive && !isGameOver)
+                {
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Cursor.visible = false;
+                }
             }
         }
 
