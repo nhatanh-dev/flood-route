@@ -88,6 +88,7 @@ public class GameFlowManager : MonoBehaviour
 
     void Awake()
     {
+        PauseMenuController.Initialize();
         ValidateReferences();
         BindButtons();
         SetupVideoPlayer();

@@ -8,6 +8,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+[UnityEngine.Scripting.Preserve]
 public sealed class PauseMenuController : MonoBehaviour
 {
     private const string Round1SceneName = "Round1_FirstPersonPrototype";
@@ -53,7 +54,7 @@ public sealed class PauseMenuController : MonoBehaviour
     public bool IsPaused => isPaused;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void RegisterSceneLoadedCallback()
+    public static void Initialize()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
         SceneManager.sceneLoaded += OnSceneLoaded;
